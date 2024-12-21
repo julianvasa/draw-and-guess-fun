@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DrawingCanvas } from "@/components/DrawingCanvas";
 import { GameTimer } from "@/components/GameTimer";
 import { WordPrompt } from "@/components/WordPrompt";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const WORDS = [

@@ -23,8 +23,11 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
       isDrawingMode: true,
     });
 
+    // Initialize the brush first
+    canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
     canvas.freeDrawingBrush.width = 5;
     canvas.freeDrawingBrush.color = "#000000";
+    
     setFabricCanvas(canvas);
 
     return () => {
