@@ -8,10 +8,22 @@ interface DrawingCanvasProps {
   onFinishDrawing: () => void;
 }
 
+const COLORS = {
+  black: "#000000",
+  red: "#FF0000",
+  orange: "#FF7F00",
+  yellow: "#FFFF00",
+  green: "#00FF00",
+  blue: "#0000FF",
+  indigo: "#4B0082",
+  violet: "#8F00FF"
+};
+
 export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [isEraser, setIsEraser] = useState(false);
+  const [currentColor, setCurrentColor] = useState(COLORS.black);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -26,7 +38,7 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     // Initialize the brush first
     canvas.freeDrawingBrush = new PencilBrush(canvas);
     canvas.freeDrawingBrush.width = 5;
-    canvas.freeDrawingBrush.color = "#000000";
+    canvas.freeDrawingBrush.color = currentColor;
     
     setFabricCanvas(canvas);
 
@@ -38,7 +50,7 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
   const toggleEraser = () => {
     if (!fabricCanvas) return;
     setIsEraser(!isEraser);
-    fabricCanvas.freeDrawingBrush.color = isEraser ? "#000000" : "#ffffff";
+    fabricCanvas.freeDrawingBrush.color = !isEraser ? "#ffffff" : currentColor;
     toast(isEraser ? "Switched to pen" : "Switched to eraser");
   };
 
@@ -59,12 +71,34 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     }
   };
 
+  const handleColorChange = (color: string) => {
+    if (!fabricCanvas) return;
+    setCurrentColor(color);
+    if (!isEraser) {
+      fabricCanvas.freeDrawingBrush.color = color;
+      toast(`Color changed to ${Object.keys(COLORS).find(key => COLORS[key as keyof typeof COLORS] === color) || 'selected color'}`);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center gap-4 animate-fade-in">
       <div className="border-2 border-canvas-border rounded-lg shadow-lg overflow-hidden">
         <canvas ref={canvasRef} />
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
+        <div className="flex gap-2 mr-4">
+          {Object.entries(COLORS).map(([name, color]) => (
+            <button
+              key={name}
+              className={`w-8 h-8 rounded-full border-2 ${
+                currentColor === color ? 'border-primary' : 'border-gray-200'
+              } transition-all hover:scale-110`}
+              style={{ backgroundColor: color }}
+              onClick={() => handleColorChange(color)}
+              title={name.charAt(0).toUpperCase() + name.slice(1)}
+            />
+          ))}
+        </div>
         <Button
           variant="outline"
           size="icon"
