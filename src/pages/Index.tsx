@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
-import { DrawingCanvas } from "@/components/DrawingCanvas";
-import { GameTimer } from "@/components/GameTimer";
-import { WordPrompt } from "@/components/WordPrompt";
-import { RoomManager } from "@/components/RoomManager";
-import { UserList } from "@/components/UserList";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+import { RoomManager } from "@/components/RoomManager";
+import { GameHeader } from "@/components/GameHeader";
+import { DrawingInterface } from "@/components/DrawingInterface";
+import { GuessingInterface } from "@/components/GuessingInterface";
+import { GameOver } from "@/components/GameOver";
 import { UserProvider, useUser } from "@/contexts/UserContext";
 
 const WORDS = [
@@ -117,64 +115,34 @@ const GameContent = () => {
   return (
     <div className="min-h-screen bg-game-background p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold text-game-text animate-fade-in">
-            Drawing Charades
-          </h1>
-          {roomId && (
-            <div className="flex items-center gap-4">
-              <UserList />
-              <div className="flex items-center gap-4">
-                <p className="text-sm font-medium">Room: {roomId}</p>
-                <Button variant="outline" size="sm" onClick={handleLeaveRoom}>
-                  Leave Room
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+        <GameHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
 
         {!roomId ? (
           <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
         ) : isPlaying ? (
           <>
             {currentDrawingUser === userId ? (
-              <>
-                <div className="flex justify-center mb-6">
-                  <WordPrompt word={currentWord} onNewWord={handleNewWord} />
-                </div>
-                <div className="flex justify-center mb-6">
-                  <GameTimer duration={60} onTimeUp={handleTimeUp} />
-                </div>
-                <DrawingCanvas onFinishDrawing={handleFinishDrawing} />
-              </>
+              <DrawingInterface
+                currentWord={currentWord}
+                onNewWord={handleNewWord}
+                onTimeUp={handleTimeUp}
+                onFinishDrawing={handleFinishDrawing}
+              />
             ) : (
-              <div className="flex flex-col items-center gap-4">
-                <h2 className="text-xl font-semibold">Guess the drawing!</h2>
-                <div className="flex gap-2 w-full max-w-md">
-                  <Input
-                    value={guess}
-                    onChange={(e) => setGuess(e.target.value)}
-                    placeholder="Type your guess here..."
-                    onKeyDown={(e) => e.key === "Enter" && handleGuess()}
-                  />
-                  <Button onClick={handleGuess}>Guess</Button>
-                </div>
-              </div>
+              <GuessingInterface
+                guess={guess}
+                onGuessChange={setGuess}
+                onGuessSubmit={handleGuess}
+              />
             )}
           </>
         ) : (
-          <div className="text-center space-y-4 animate-fade-in">
-            <h2 className="text-2xl font-semibold text-game-text">Game Over!</h2>
-            <Button
-              onClick={() => {
-                setIsPlaying(true);
-                handleNewWord();
-              }}
-            >
-              Play Again
-            </Button>
-          </div>
+          <GameOver
+            onPlayAgain={() => {
+              setIsPlaying(true);
+              handleNewWord();
+            }}
+          />
         )}
       </div>
     </div>
