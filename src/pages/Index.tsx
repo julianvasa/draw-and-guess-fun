@@ -3,9 +3,11 @@ import { DrawingCanvas } from "@/components/DrawingCanvas";
 import { GameTimer } from "@/components/GameTimer";
 import { WordPrompt } from "@/components/WordPrompt";
 import { RoomManager } from "@/components/RoomManager";
+import { UserList } from "@/components/UserList";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
+import { UserProvider, useUser } from "@/contexts/UserContext";
 
 const WORDS = [
   "elephant", "pizza", "rainbow", "computer", "beach",
@@ -14,11 +16,12 @@ const WORDS = [
 
 const getRandomWord = () => WORDS[Math.floor(Math.random() * WORDS.length)];
 
-const Index = () => {
+const GameContent = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentWord, setCurrentWord] = useState(getRandomWord());
   const [isPlaying, setIsPlaying] = useState(false);
   const [roomId, setRoomId] = useState<string | null>(searchParams.get("room"));
+  const { username, setUsers } = useUser();
 
   const handleNewWord = () => {
     setCurrentWord(getRandomWord());
@@ -40,6 +43,9 @@ const Index = () => {
     setRoomId(newRoomId);
     setSearchParams({ room: newRoomId });
     setIsPlaying(true);
+    // Store room info in sessionStorage
+    sessionStorage.setItem(newRoomId, JSON.stringify({ creator: username }));
+    setUsers([username]);
     toast.success("Room created! Share this link with your friends:", {
       description: window.location.href,
       duration: 10000,
@@ -50,13 +56,24 @@ const Index = () => {
     setRoomId(id);
     setSearchParams({ room: id });
     setIsPlaying(true);
+    // Update users list
+    const roomData = JSON.parse(sessionStorage.getItem(id) || "{}");
+    const updatedUsers = [...(roomData.users || [roomData.creator]), username];
+    sessionStorage.setItem(id, JSON.stringify({ ...roomData, users: updatedUsers }));
+    setUsers(updatedUsers);
     toast.success("Joined room successfully!");
   };
 
   const handleLeaveRoom = () => {
+    if (roomId) {
+      const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
+      const updatedUsers = (roomData.users || []).filter((user: string) => user !== username);
+      sessionStorage.setItem(roomId, JSON.stringify({ ...roomData, users: updatedUsers }));
+    }
     setRoomId(null);
     setSearchParams({});
     setIsPlaying(false);
+    setUsers([]);
     toast("Left the room");
   };
 
@@ -69,10 +86,13 @@ const Index = () => {
           </h1>
           {roomId && (
             <div className="flex items-center gap-4">
-              <p className="text-sm font-medium">Room: {roomId}</p>
-              <Button variant="outline" size="sm" onClick={handleLeaveRoom}>
-                Leave Room
-              </Button>
+              <UserList />
+              <div className="flex items-center gap-4">
+                <p className="text-sm font-medium">Room: {roomId}</p>
+                <Button variant="outline" size="sm" onClick={handleLeaveRoom}>
+                  Leave Room
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -104,6 +124,14 @@ const Index = () => {
         )}
       </div>
     </div>
+  );
+};
+
+const Index = () => {
+  return (
+    <UserProvider>
+      <GameContent />
+    </UserProvider>
   );
 };
 
