@@ -1,20 +1,37 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
+interface User {
+  id: string;
+  name: string;
+}
+
 interface UserContextType {
   username: string;
   setUsername: (name: string) => void;
-  users: string[];
-  setUsers: (users: string[]) => void;
+  users: User[];
+  setUsers: (users: User[]) => void;
+  currentDrawingUser: string | null;
+  setCurrentDrawingUser: (userId: string | null) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [username, setUsername] = useState("");
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentDrawingUser, setCurrentDrawingUser] = useState<string | null>(null);
 
   return (
-    <UserContext.Provider value={{ username, setUsername, users, setUsers }}>
+    <UserContext.Provider 
+      value={{ 
+        username, 
+        setUsername, 
+        users, 
+        setUsers,
+        currentDrawingUser,
+        setCurrentDrawingUser
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

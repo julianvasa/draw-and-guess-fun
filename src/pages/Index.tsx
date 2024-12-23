@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DrawingCanvas } from "@/components/DrawingCanvas";
 import { GameTimer } from "@/components/GameTimer";
 import { WordPrompt } from "@/components/WordPrompt";
 import { RoomManager } from "@/components/RoomManager";
 import { UserList } from "@/components/UserList";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { UserProvider, useUser } from "@/contexts/UserContext";
@@ -21,7 +22,10 @@ const GameContent = () => {
   const [currentWord, setCurrentWord] = useState(getRandomWord());
   const [isPlaying, setIsPlaying] = useState(false);
   const [roomId, setRoomId] = useState<string | null>(searchParams.get("room"));
-  const { username, setUsers } = useUser();
+  const [guess, setGuess] = useState("");
+  const { username, users, setUsers, currentDrawingUser, setCurrentDrawingUser } = useUser();
+
+  const userId = useState(() => Math.random().toString(36).substring(7))[0];
 
   const handleNewWord = () => {
     setCurrentWord(getRandomWord());
@@ -30,6 +34,11 @@ const GameContent = () => {
 
   const handleTimeUp = () => {
     setIsPlaying(false);
+    if (currentDrawingUser) {
+      const currentIndex = users.findIndex(user => user.id === currentDrawingUser);
+      const nextIndex = (currentIndex + 1) % users.length;
+      setCurrentDrawingUser(users[nextIndex].id);
+    }
     toast("Time's up!");
   };
 
@@ -43,9 +52,14 @@ const GameContent = () => {
     setRoomId(newRoomId);
     setSearchParams({ room: newRoomId });
     setIsPlaying(true);
-    // Store room info in sessionStorage
-    sessionStorage.setItem(newRoomId, JSON.stringify({ creator: username }));
-    setUsers([username]);
+    const newUser = { id: userId, name: username };
+    setUsers([newUser]);
+    setCurrentDrawingUser(userId);
+    sessionStorage.setItem(newRoomId, JSON.stringify({ 
+      creator: newUser,
+      users: [newUser],
+      currentDrawingUser: userId
+    }));
     toast.success("Room created! Share this link with your friends:", {
       description: window.location.href,
       duration: 10000,
@@ -56,24 +70,47 @@ const GameContent = () => {
     setRoomId(id);
     setSearchParams({ room: id });
     setIsPlaying(true);
-    // Update users list
+    
     const roomData = JSON.parse(sessionStorage.getItem(id) || "{}");
-    const updatedUsers = [...(roomData.users || [roomData.creator]), username];
-    sessionStorage.setItem(id, JSON.stringify({ ...roomData, users: updatedUsers }));
+    const newUser = { id: userId, name: username };
+    const updatedUsers = [...(roomData.users || []), newUser];
+    
+    sessionStorage.setItem(id, JSON.stringify({ 
+      ...roomData,
+      users: updatedUsers,
+      currentDrawingUser: roomData.currentDrawingUser || userId
+    }));
+    
     setUsers(updatedUsers);
+    setCurrentDrawingUser(roomData.currentDrawingUser || userId);
     toast.success("Joined room successfully!");
+  };
+
+  const handleGuess = () => {
+    if (guess.toLowerCase() === currentWord.toLowerCase()) {
+      toast.success("Correct guess!");
+      handleTimeUp(); // Move to next player
+      handleNewWord();
+    } else {
+      toast.error("Wrong guess, try again!");
+    }
+    setGuess("");
   };
 
   const handleLeaveRoom = () => {
     if (roomId) {
       const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
-      const updatedUsers = (roomData.users || []).filter((user: string) => user !== username);
-      sessionStorage.setItem(roomId, JSON.stringify({ ...roomData, users: updatedUsers }));
+      const updatedUsers = roomData.users.filter((user: { id: string }) => user.id !== userId);
+      sessionStorage.setItem(roomId, JSON.stringify({ 
+        ...roomData, 
+        users: updatedUsers,
+        currentDrawingUser: updatedUsers.length > 0 ? updatedUsers[0].id : null
+      }));
+      setUsers(updatedUsers);
     }
     setRoomId(null);
     setSearchParams({});
     setIsPlaying(false);
-    setUsers([]);
     toast("Left the room");
   };
 
@@ -101,13 +138,30 @@ const GameContent = () => {
           <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
         ) : isPlaying ? (
           <>
-            <div className="flex justify-center mb-6">
-              <WordPrompt word={currentWord} onNewWord={handleNewWord} />
-            </div>
-            <div className="flex justify-center mb-6">
-              <GameTimer duration={60} onTimeUp={handleTimeUp} />
-            </div>
-            <DrawingCanvas onFinishDrawing={handleFinishDrawing} />
+            {currentDrawingUser === userId ? (
+              <>
+                <div className="flex justify-center mb-6">
+                  <WordPrompt word={currentWord} onNewWord={handleNewWord} />
+                </div>
+                <div className="flex justify-center mb-6">
+                  <GameTimer duration={60} onTimeUp={handleTimeUp} />
+                </div>
+                <DrawingCanvas onFinishDrawing={handleFinishDrawing} />
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-4">
+                <h2 className="text-xl font-semibold">Guess the drawing!</h2>
+                <div className="flex gap-2 w-full max-w-md">
+                  <Input
+                    value={guess}
+                    onChange={(e) => setGuess(e.target.value)}
+                    placeholder="Type your guess here..."
+                    onKeyDown={(e) => e.key === "Enter" && handleGuess()}
+                  />
+                  <Button onClick={handleGuess}>Guess</Button>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="text-center space-y-4 animate-fade-in">

@@ -25,10 +25,8 @@ export const RoomManager = ({ onJoinRoom, onCreateRoom }: RoomManagerProps) => {
       return;
     }
 
-    // In a real app, this would be an API call to check if the room exists
-    const roomExists = sessionStorage.getItem(roomId) !== null;
-    
-    if (!roomExists) {
+    const roomData = sessionStorage.getItem(roomId);
+    if (!roomData) {
       toast.error("This room doesn't exist");
       return;
     }
