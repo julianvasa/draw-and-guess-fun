@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas as FabricCanvas } from "fabric";
+import { Canvas as FabricCanvas, PencilBrush } from "fabric";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Eraser, Paintbrush, Undo2, X } from "lucide-react";
@@ -24,7 +24,7 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     });
 
     // Initialize the brush first
-    canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+    canvas.freeDrawingBrush = new PencilBrush(canvas);
     canvas.freeDrawingBrush.width = 5;
     canvas.freeDrawingBrush.color = "#000000";
     
