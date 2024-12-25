@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { RoomManager } from "@/components/RoomManager";
@@ -25,8 +25,36 @@ const GameContent = () => {
 
   const userId = useState(() => Math.random().toString(36).substring(7))[0];
 
+  // Sync word from sessionStorage
+  useEffect(() => {
+    if (roomId) {
+      const syncWord = () => {
+        const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
+        if (roomData.currentWord && roomData.currentWord !== currentWord) {
+          console.log("Syncing word:", roomData.currentWord);
+          setCurrentWord(roomData.currentWord);
+        }
+      };
+
+      // Initial sync
+      syncWord();
+
+      // Set up interval for continuous sync
+      const interval = setInterval(syncWord, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [roomId, currentWord]);
+
   const handleNewWord = () => {
-    setCurrentWord(getRandomWord());
+    const newWord = getRandomWord();
+    setCurrentWord(newWord);
+    if (roomId) {
+      const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
+      sessionStorage.setItem(roomId, JSON.stringify({
+        ...roomData,
+        currentWord: newWord
+      }));
+    }
     toast("New word generated!");
   };
 
@@ -56,7 +84,8 @@ const GameContent = () => {
     sessionStorage.setItem(newRoomId, JSON.stringify({ 
       creator: newUser,
       users: [newUser],
-      currentDrawingUser: userId
+      currentDrawingUser: userId,
+      currentWord
     }));
     toast.success("Room created! Share this link with your friends:", {
       description: window.location.href,
@@ -72,6 +101,10 @@ const GameContent = () => {
     const roomData = JSON.parse(sessionStorage.getItem(id) || "{}");
     const newUser = { id: userId, name: username };
     const updatedUsers = [...(roomData.users || []), newUser];
+    
+    if (roomData.currentWord) {
+      setCurrentWord(roomData.currentWord);
+    }
     
     sessionStorage.setItem(id, JSON.stringify({ 
       ...roomData,
