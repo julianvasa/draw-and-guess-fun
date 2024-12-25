@@ -19,11 +19,15 @@ const COLORS = {
   violet: "#8F00FF"
 };
 
+const SYNC_INTERVAL = 100; // Sync every 100ms
+
 export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [isEraser, setIsEraser] = useState(false);
   const [currentColor, setCurrentColor] = useState(COLORS.black);
+  const syncIntervalRef = useRef<number>();
+  const lastSyncRef = useRef<string>("");
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -35,17 +39,67 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
       isDrawingMode: true,
     });
 
-    // Initialize the brush first
     canvas.freeDrawingBrush = new PencilBrush(canvas);
     canvas.freeDrawingBrush.width = 5;
     canvas.freeDrawingBrush.color = currentColor;
     
+    // Load existing drawing if available
+    const roomId = new URLSearchParams(window.location.search).get("room");
+    if (roomId) {
+      const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
+      if (roomData.canvasData) {
+        canvas.loadFromJSON(roomData.canvasData, () => {
+          canvas.renderAll();
+          console.log("Canvas loaded from storage");
+        });
+      }
+    }
+
+    // Set up event listener for drawing updates
+    canvas.on('path:created', () => {
+      broadcastDrawing(canvas);
+    });
+
     setFabricCanvas(canvas);
+
+    // Set up sync interval
+    syncIntervalRef.current = window.setInterval(() => {
+      if (canvas) {
+        const roomId = new URLSearchParams(window.location.search).get("room");
+        if (roomId) {
+          const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
+          if (roomData.canvasData && roomData.canvasData !== lastSyncRef.current) {
+            canvas.loadFromJSON(roomData.canvasData, () => {
+              canvas.renderAll();
+              console.log("Canvas synced from storage");
+            });
+            lastSyncRef.current = roomData.canvasData;
+          }
+        }
+      }
+    }, SYNC_INTERVAL);
 
     return () => {
       canvas.dispose();
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+      }
     };
   }, []);
+
+  const broadcastDrawing = (canvas: FabricCanvas) => {
+    const roomId = new URLSearchParams(window.location.search).get("room");
+    if (!roomId) return;
+
+    const canvasData = JSON.stringify(canvas.toJSON());
+    if (canvasData === lastSyncRef.current) return;
+
+    const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
+    roomData.canvasData = canvasData;
+    sessionStorage.setItem(roomId, JSON.stringify(roomData));
+    lastSyncRef.current = canvasData;
+    console.log("Canvas broadcasted to storage");
+  };
 
   const toggleEraser = () => {
     if (!fabricCanvas) return;
@@ -59,6 +113,7 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     fabricCanvas.clear();
     fabricCanvas.backgroundColor = "#ffffff";
     fabricCanvas.renderAll();
+    broadcastDrawing(fabricCanvas);
     toast("Canvas cleared!");
   };
 
@@ -67,6 +122,7 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     const objects = fabricCanvas.getObjects();
     if (objects.length > 0) {
       fabricCanvas.remove(objects[objects.length - 1]);
+      broadcastDrawing(fabricCanvas);
       toast("Undid last stroke");
     }
   };
