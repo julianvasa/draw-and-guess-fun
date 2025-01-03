@@ -105,7 +105,6 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     if (!fabricCanvas) return;
     setIsEraser(!isEraser);
     fabricCanvas.freeDrawingBrush.color = !isEraser ? "#ffffff" : currentColor;
-    toast(isEraser ? "Switched to pen" : "Switched to eraser");
   };
 
   const clearCanvas = () => {
@@ -132,7 +131,6 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     setCurrentColor(color);
     if (!isEraser) {
       fabricCanvas.freeDrawingBrush.color = color;
-      toast(`Color changed to ${Object.keys(COLORS).find(key => COLORS[key as keyof typeof COLORS] === color) || 'selected color'}`);
     }
   };
 
