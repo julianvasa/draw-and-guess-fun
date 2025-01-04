@@ -19,7 +19,7 @@ export const GameHeader = ({ roomId, onLeaveRoom }: GameHeaderProps) => {
   return (
     <div className="flex justify-between items-center">
       <img 
-        src="/lovable-uploads/8af83f4c-735f-43a5-acf7-828966f8b237.png" 
+        src="/lovable-uploads/eb1c8c17-9aac-4452-941c-709ae9466d72.png" 
         alt="Drawing Clues - Sketch. Guess. Win!" 
         className="h-16 animate-fade-in"
       />
