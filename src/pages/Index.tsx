@@ -84,10 +84,10 @@ const GameContent = () => {
       currentWord
     }));
     
-    // Fix: Remove the colon from the URL construction
-    const shareUrl = new URL(window.location.href);
+    // Fix: Ensure clean URL construction without extra colons
+    const shareUrl = window.location.origin + window.location.pathname + '?room=' + newRoomId;
     toast.success("Room created! Share this link with your friends:", {
-      description: shareUrl.toString(),
+      description: shareUrl,
       duration: 10000,
     });
   };
