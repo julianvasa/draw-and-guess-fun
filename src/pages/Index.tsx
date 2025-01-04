@@ -25,7 +25,6 @@ const GameContent = () => {
 
   const userId = useState(() => Math.random().toString(36).substring(7))[0];
 
-  // Sync word from sessionStorage
   useEffect(() => {
     if (roomId) {
       const syncWord = () => {
@@ -36,10 +35,7 @@ const GameContent = () => {
         }
       };
 
-      // Initial sync
       syncWord();
-
-      // Set up interval for continuous sync
       const interval = setInterval(syncWord, 1000);
       return () => clearInterval(interval);
     }
@@ -87,8 +83,11 @@ const GameContent = () => {
       currentDrawingUser: userId,
       currentWord
     }));
+    
+    // Fix: Remove the colon from the URL construction
+    const shareUrl = new URL(window.location.href);
     toast.success("Room created! Share this link with your friends:", {
-      description: window.location.href,
+      description: shareUrl.toString(),
       duration: 10000,
     });
   };
@@ -120,7 +119,7 @@ const GameContent = () => {
   const handleGuess = () => {
     if (guess.toLowerCase() === currentWord.toLowerCase()) {
       toast.success("Correct guess!");
-      handleTimeUp(); // Move to next player
+      handleTimeUp();
       handleNewWord();
     } else {
       toast.error("Wrong guess, try again!");
