@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas as FabricCanvas, PencilBrush, Rect, Circle, Triangle } from "fabric";
+import { Canvas as FabricCanvas, PencilBrush } from "fabric";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Eraser, Paintbrush, Undo2, X, Square, Circle as CircleIcon, Triangle as TriangleIcon } from "lucide-react";
+import { Eraser, Paintbrush, Undo2, X } from "lucide-react";
+import { ShapeControls } from "./shapes/ShapeControls";
+import { createShape } from "./shapes/ShapeFactory";
 
 interface DrawingCanvasProps {
   onFinishDrawing: () => void;
@@ -60,6 +62,11 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
       broadcastDrawing(canvas);
     });
 
+    // Set up event listener for object modifications
+    canvas.on('object:modified', () => {
+      broadcastDrawing(canvas);
+    });
+
     setFabricCanvas(canvas);
 
     // Set up sync interval
@@ -105,48 +112,18 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     if (!fabricCanvas) return;
 
     const center = fabricCanvas.getCenter();
-    let shape;
+    const shape = createShape(shapeType, {
+      left: center.left,
+      top: center.top,
+      fill: currentColor,
+    });
 
-    switch (shapeType) {
-      case 'rectangle':
-        shape = new Rect({
-          left: center.left,
-          top: center.top,
-          width: 100,
-          height: 60,
-          fill: currentColor,
-          originX: 'center',
-          originY: 'center'
-        });
-        break;
-      case 'circle':
-        shape = new Circle({
-          left: center.left,
-          top: center.top,
-          radius: 30,
-          fill: currentColor,
-          originX: 'center',
-          originY: 'center'
-        });
-        break;
-      case 'triangle':
-        shape = new Triangle({
-          left: center.left,
-          top: center.top,
-          width: 100,
-          height: 100,
-          fill: currentColor,
-          originX: 'center',
-          originY: 'center'
-        });
-        break;
-    }
-
+    fabricCanvas.isDrawingMode = false; // Disable drawing mode to allow shape manipulation
     fabricCanvas.add(shape);
     fabricCanvas.setActiveObject(shape);
     fabricCanvas.renderAll();
     broadcastDrawing(fabricCanvas);
-    toast(`Added ${shapeType}!`);
+    toast(`Added ${shapeType}! You can now move it around.`);
   };
 
   const toggleEraser = () => {
@@ -201,32 +178,7 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
             />
           ))}
         </div>
-        <div className="flex gap-2 mr-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => addShape('rectangle')}
-            title="Add Rectangle"
-          >
-            <Square className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => addShape('circle')}
-            title="Add Circle"
-          >
-            <CircleIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => addShape('triangle')}
-            title="Add Triangle"
-          >
-            <TriangleIcon className="h-4 w-4" />
-          </Button>
-        </div>
+        <ShapeControls onAddShape={addShape} />
         <Button
           variant="outline"
           size="icon"
