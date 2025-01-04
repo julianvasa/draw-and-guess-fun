@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas as FabricCanvas, PencilBrush } from "fabric";
+import { Canvas as FabricCanvas, PencilBrush, Rect, Circle, Triangle } from "fabric";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Eraser, Paintbrush, Undo2, X } from "lucide-react";
+import { Eraser, Paintbrush, Undo2, X, Square, Circle as CircleIcon, Triangle as TriangleIcon } from "lucide-react";
 
 interface DrawingCanvasProps {
   onFinishDrawing: () => void;
@@ -19,7 +19,7 @@ const COLORS = {
   violet: "#8F00FF"
 };
 
-const SYNC_INTERVAL = 100; // Sync every 100ms
+const SYNC_INTERVAL = 100;
 
 export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -101,6 +101,54 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     console.log("Canvas broadcasted to storage");
   };
 
+  const addShape = (shapeType: 'rectangle' | 'circle' | 'triangle') => {
+    if (!fabricCanvas) return;
+
+    const center = fabricCanvas.getCenter();
+    let shape;
+
+    switch (shapeType) {
+      case 'rectangle':
+        shape = new Rect({
+          left: center.left,
+          top: center.top,
+          width: 100,
+          height: 60,
+          fill: currentColor,
+          originX: 'center',
+          originY: 'center'
+        });
+        break;
+      case 'circle':
+        shape = new Circle({
+          left: center.left,
+          top: center.top,
+          radius: 30,
+          fill: currentColor,
+          originX: 'center',
+          originY: 'center'
+        });
+        break;
+      case 'triangle':
+        shape = new Triangle({
+          left: center.left,
+          top: center.top,
+          width: 100,
+          height: 100,
+          fill: currentColor,
+          originX: 'center',
+          originY: 'center'
+        });
+        break;
+    }
+
+    fabricCanvas.add(shape);
+    fabricCanvas.setActiveObject(shape);
+    fabricCanvas.renderAll();
+    broadcastDrawing(fabricCanvas);
+    toast(`Added ${shapeType}!`);
+  };
+
   const toggleEraser = () => {
     if (!fabricCanvas) return;
     setIsEraser(!isEraser);
@@ -152,6 +200,32 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
               title={name.charAt(0).toUpperCase() + name.slice(1)}
             />
           ))}
+        </div>
+        <div className="flex gap-2 mr-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => addShape('rectangle')}
+            title="Add Rectangle"
+          >
+            <Square className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => addShape('circle')}
+            title="Add Circle"
+          >
+            <CircleIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => addShape('triangle')}
+            title="Add Triangle"
+          >
+            <TriangleIcon className="h-4 w-4" />
+          </Button>
         </div>
         <Button
           variant="outline"
