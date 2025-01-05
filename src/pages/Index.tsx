@@ -85,7 +85,6 @@ const GameContent = () => {
       currentWord
     }));
     
-    // Fix: Ensure clean URL construction without extra colons
     const shareUrl = window.location.origin + window.location.pathname + '?room=' + newRoomId;
     toast.success("Room created! Share this link with your friends:", {
       description: shareUrl,
@@ -147,11 +146,9 @@ const GameContent = () => {
 
   return (
     <div className="min-h-screen bg-game-background">
-      <NavigationBar />
+      <NavigationBar roomId={roomId} onLeaveRoom={handleLeaveRoom} />
       <div className="pt-16 p-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          <GameHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
-
           {!roomId ? (
             <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
           ) : isPlaying ? (
