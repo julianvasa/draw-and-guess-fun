@@ -7,6 +7,7 @@ import { DrawingInterface } from "@/components/DrawingInterface";
 import { GuessingInterface } from "@/components/GuessingInterface";
 import { GameOver } from "@/components/GameOver";
 import { UserProvider, useUser } from "@/contexts/UserContext";
+import { NavigationBar } from "@/components/NavigationBar";
 
 const WORDS = [
   "elephant", "pizza", "rainbow", "computer", "beach",
@@ -145,37 +146,40 @@ const GameContent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-game-background p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <GameHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
+    <div className="min-h-screen bg-game-background">
+      <NavigationBar />
+      <div className="pt-16 p-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <GameHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
 
-        {!roomId ? (
-          <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
-        ) : isPlaying ? (
-          <>
-            {currentDrawingUser === userId ? (
-              <DrawingInterface
-                currentWord={currentWord}
-                onNewWord={handleNewWord}
-                onTimeUp={handleTimeUp}
-                onFinishDrawing={handleFinishDrawing}
-              />
-            ) : (
-              <GuessingInterface
-                guess={guess}
-                onGuessChange={setGuess}
-                onGuessSubmit={handleGuess}
-              />
-            )}
-          </>
-        ) : (
-          <GameOver
-            onPlayAgain={() => {
-              setIsPlaying(true);
-              handleNewWord();
-            }}
-          />
-        )}
+          {!roomId ? (
+            <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
+          ) : isPlaying ? (
+            <>
+              {currentDrawingUser === userId ? (
+                <DrawingInterface
+                  currentWord={currentWord}
+                  onNewWord={handleNewWord}
+                  onTimeUp={handleTimeUp}
+                  onFinishDrawing={handleFinishDrawing}
+                />
+              ) : (
+                <GuessingInterface
+                  guess={guess}
+                  onGuessChange={setGuess}
+                  onGuessSubmit={handleGuess}
+                />
+              )}
+            </>
+          ) : (
+            <GameOver
+              onPlayAgain={() => {
+                setIsPlaying(true);
+                handleNewWord();
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
