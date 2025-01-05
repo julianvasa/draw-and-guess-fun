@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
 import { RoomManager } from "@/components/RoomManager";
 import { GameHeader } from "@/components/GameHeader";
 import { DrawingInterface } from "@/components/DrawingInterface";
@@ -52,7 +51,6 @@ const GameContent = () => {
         currentWord: newWord
       }));
     }
-    toast("New word generated!");
   };
 
   const handleTimeUp = () => {
@@ -62,12 +60,10 @@ const GameContent = () => {
       const nextIndex = (currentIndex + 1) % users.length;
       setCurrentDrawingUser(users[nextIndex].id);
     }
-    toast("Time's up!");
   };
 
   const handleFinishDrawing = () => {
     setIsPlaying(false);
-    toast("Drawing completed!");
   };
 
   const handleCreateRoom = () => {
@@ -85,11 +81,7 @@ const GameContent = () => {
       currentWord
     }));
     
-    const shareUrl = window.location.origin + window.location.pathname + '?room=' + newRoomId;
-    toast.success("Room created! Share this link with your friends:", {
-      description: shareUrl,
-      duration: 10000,
-    });
+    console.log("Room created:", newRoomId);
   };
 
   const handleJoinRoom = (id: string) => {
@@ -113,16 +105,16 @@ const GameContent = () => {
     
     setUsers(updatedUsers);
     setCurrentDrawingUser(roomData.currentDrawingUser || userId);
-    toast.success("Joined room successfully!");
+    console.log("Joined room:", id);
   };
 
   const handleGuess = () => {
     if (guess.toLowerCase() === currentWord.toLowerCase()) {
-      toast.success("Correct guess!");
+      console.log("Correct guess!");
       handleTimeUp();
       handleNewWord();
     } else {
-      toast.error("Wrong guess, try again!");
+      console.log("Wrong guess:", guess);
     }
     setGuess("");
   };
@@ -141,7 +133,7 @@ const GameContent = () => {
     setRoomId(null);
     setSearchParams({});
     setIsPlaying(false);
-    toast("Left the room");
+    console.log("Left room");
   };
 
   return (

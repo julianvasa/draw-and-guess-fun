@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Menu, X, Users, Home, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { UserList } from "./UserList";
-import { toast } from "sonner";
 
 interface NavigationBarProps {
   roomId: string | null;
@@ -21,7 +20,6 @@ export const NavigationBar = ({ roomId, onLeaveRoom }: NavigationBarProps) => {
     if (roomId) {
       const url = window.location.origin + window.location.pathname + '?room=' + roomId;
       navigator.clipboard.writeText(url);
-      toast.success("Room URL copied to clipboard!");
     }
   };
 
