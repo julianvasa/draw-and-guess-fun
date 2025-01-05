@@ -6,7 +6,6 @@ import { DrawingInterface } from "@/components/DrawingInterface";
 import { GuessingInterface } from "@/components/GuessingInterface";
 import { GameOver } from "@/components/GameOver";
 import { UserProvider, useUser } from "@/contexts/UserContext";
-import { NavigationBar } from "@/components/NavigationBar";
 
 const WORDS = [
   "elephant", "pizza", "rainbow", "computer", "beach",
@@ -138,8 +137,8 @@ const GameContent = () => {
 
   return (
     <div className="min-h-screen bg-game-background">
-      <NavigationBar roomId={roomId} onLeaveRoom={handleLeaveRoom} />
-      <div className="pt-16 p-8">
+      <GameHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
+      <div className="p-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {!roomId ? (
             <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
