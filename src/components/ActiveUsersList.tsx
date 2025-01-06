@@ -16,7 +16,12 @@ export const ActiveUsersList = () => {
                 : "bg-secondary"
             }`}
           >
-            {user.name} {currentDrawingUser === user.id ? "(Drawing)" : ""}
+            <div className="flex justify-between items-center">
+              <span>
+                {user.name} {currentDrawingUser === user.id ? "(Drawing)" : ""}
+              </span>
+              <span className="font-semibold">{user.points || 0}</span>
+            </div>
           </div>
         ))}
       </div>

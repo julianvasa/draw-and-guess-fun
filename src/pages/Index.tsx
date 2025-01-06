@@ -71,7 +71,7 @@ const GameContent = () => {
     setRoomId(newRoomId);
     setSearchParams({ room: newRoomId });
     setIsPlaying(true);
-    const newUser = { id: userId, name: username };
+    const newUser = { id: userId, name: username, points: 0 };
     setUsers([newUser]);
     setCurrentDrawingUser(userId);
     sessionStorage.setItem(newRoomId, JSON.stringify({ 
@@ -90,7 +90,7 @@ const GameContent = () => {
     setIsPlaying(true);
     
     const roomData = JSON.parse(sessionStorage.getItem(id) || "{}");
-    const newUser = { id: userId, name: username };
+    const newUser = { id: userId, name: username, points: 0 };
     const updatedUsers = [...(roomData.users || []), newUser];
     
     if (roomData.currentWord) {
@@ -111,6 +111,13 @@ const GameContent = () => {
   const handleGuess = () => {
     if (guess.toLowerCase() === currentWord.toLowerCase()) {
       console.log("Correct guess!");
+      const updatedUsers = users.map(user => {
+        if (user.id === userId) {
+          return { ...user, points: (user.points || 0) + 10 };
+        }
+        return user;
+      });
+      setUsers(updatedUsers);
       handleTimeUp();
       handleNewWord();
     } else {
@@ -186,3 +193,4 @@ const Index = () => {
 };
 
 export default Index;
+

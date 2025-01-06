@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 interface User {
   id: string;
   name: string;
+  points: number;
 }
 
 interface UserContextType {
