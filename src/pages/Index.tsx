@@ -7,6 +7,7 @@ import { GuessingInterface } from "@/components/GuessingInterface";
 import { GameOver } from "@/components/GameOver";
 import { UserProvider, useUser } from "@/contexts/UserContext";
 import { ActiveUsersList } from "@/components/ActiveUsersList";
+import { toast } from "sonner";
 
 const WORDS = [
   "elephant", "pizza", "rainbow", "computer", "beach",
@@ -143,9 +144,20 @@ const GameContent = () => {
     console.log("Left room");
   };
 
+  const handleCopyRoomLink = () => {
+    const url = new URL(window.location.href);
+    navigator.clipboard.writeText(url.toString());
+    toast.success("Room URL copied to clipboard!");
+    console.log("Room URL copied");
+  };
+
   return (
     <div className="min-h-screen bg-game-background">
-      <GameHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
+      <GameHeader 
+        roomId={roomId} 
+        onLeaveRoom={handleLeaveRoom} 
+        onCopyRoomLink={handleCopyRoomLink}
+      />
       <div className="p-8">
         <div className="max-w-7xl mx-auto">
           {!roomId ? (
