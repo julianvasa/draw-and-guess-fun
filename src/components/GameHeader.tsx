@@ -4,17 +4,10 @@ import { Button } from "./ui/button";
 interface GameHeaderProps {
   roomId: string | null;
   onLeaveRoom: () => void;
+  onCopyRoomLink: () => void;
 }
 
-export const GameHeader = ({ roomId, onLeaveRoom }: GameHeaderProps) => {
-  const handleCopyRoomUrl = () => {
-    if (roomId) {
-      const url = window.location.origin + window.location.pathname + '?room=' + roomId;
-      navigator.clipboard.writeText(url);
-      console.log("Room URL copied");
-    }
-  };
-
+export const GameHeader = ({ roomId, onLeaveRoom, onCopyRoomLink }: GameHeaderProps) => {
   if (!roomId) return null;
 
   return (
@@ -30,7 +23,7 @@ export const GameHeader = ({ roomId, onLeaveRoom }: GameHeaderProps) => {
         <div className="flex items-center gap-4">
           <div 
             className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors"
-            onClick={handleCopyRoomUrl}
+            onClick={onCopyRoomLink}
             title="Click to copy room URL"
           >
             <Home className="h-4 w-4" />
