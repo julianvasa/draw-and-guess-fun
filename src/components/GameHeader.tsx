@@ -1,5 +1,6 @@
 import { Home } from "lucide-react";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 interface GameHeaderProps {
   roomId: string | null;
