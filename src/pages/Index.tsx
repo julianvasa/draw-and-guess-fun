@@ -6,6 +6,7 @@ import { DrawingInterface } from "@/components/DrawingInterface";
 import { GuessingInterface } from "@/components/GuessingInterface";
 import { GameOver } from "@/components/GameOver";
 import { UserProvider, useUser } from "@/contexts/UserContext";
+import { ActiveUsersList } from "@/components/ActiveUsersList";
 
 const WORDS = [
   "elephant", "pizza", "rainbow", "computer", "beach",
@@ -139,26 +140,29 @@ const GameContent = () => {
     <div className="min-h-screen bg-game-background">
       <GameHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
       <div className="p-8">
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-7xl mx-auto">
           {!roomId ? (
             <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
           ) : isPlaying ? (
-            <>
-              {currentDrawingUser === userId ? (
-                <DrawingInterface
-                  currentWord={currentWord}
-                  onNewWord={handleNewWord}
-                  onTimeUp={handleTimeUp}
-                  onFinishDrawing={handleFinishDrawing}
-                />
-              ) : (
-                <GuessingInterface
-                  guess={guess}
-                  onGuessChange={setGuess}
-                  onGuessSubmit={handleGuess}
-                />
-              )}
-            </>
+            <div className="flex gap-8">
+              <div className="flex-1">
+                {currentDrawingUser === userId ? (
+                  <DrawingInterface
+                    currentWord={currentWord}
+                    onNewWord={handleNewWord}
+                    onTimeUp={handleTimeUp}
+                    onFinishDrawing={handleFinishDrawing}
+                  />
+                ) : (
+                  <GuessingInterface
+                    guess={guess}
+                    onGuessChange={setGuess}
+                    onGuessSubmit={handleGuess}
+                  />
+                )}
+              </div>
+              <ActiveUsersList />
+            </div>
           ) : (
             <GameOver
               onPlayAgain={() => {

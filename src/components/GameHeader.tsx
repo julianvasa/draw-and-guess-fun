@@ -1,6 +1,5 @@
 import { Home } from "lucide-react";
 import { Button } from "./ui/button";
-import { UserList } from "./UserList";
 
 interface GameHeaderProps {
   roomId: string | null;
@@ -27,7 +26,6 @@ export const GameHeader = ({ roomId, onLeaveRoom }: GameHeaderProps) => {
             alt="Drawing Clues - Sketch. Guess. Win!" 
             className="h-8"
           />
-          <UserList />
         </div>
         <div className="flex items-center gap-4">
           <div 
