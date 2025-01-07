@@ -7,6 +7,7 @@ import { GuessingInterface } from "@/components/GuessingInterface";
 import { GameOver } from "@/components/GameOver";
 import { UserProvider, useUser } from "@/contexts/UserContext";
 import { ActiveUsersList } from "@/components/ActiveUsersList";
+import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
 
 const WORDS = [
@@ -161,34 +162,43 @@ const GameContent = () => {
       <div className="p-8">
         <div className="max-w-7xl mx-auto">
           {!roomId ? (
-            <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
+            <>
+              <Logo />
+              <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
+            </>
           ) : isPlaying ? (
-            <div className="flex gap-8">
-              <div className="flex-1">
-                {currentDrawingUser === userId ? (
-                  <DrawingInterface
-                    currentWord={currentWord}
-                    onNewWord={handleNewWord}
-                    onTimeUp={handleTimeUp}
-                    onFinishDrawing={handleFinishDrawing}
-                  />
-                ) : (
-                  <GuessingInterface
-                    guess={guess}
-                    onGuessChange={setGuess}
-                    onGuessSubmit={handleGuess}
-                  />
-                )}
+            <>
+              <Logo />
+              <div className="flex gap-8">
+                <div className="flex-1">
+                  {currentDrawingUser === userId ? (
+                    <DrawingInterface
+                      currentWord={currentWord}
+                      onNewWord={handleNewWord}
+                      onTimeUp={handleTimeUp}
+                      onFinishDrawing={handleFinishDrawing}
+                    />
+                  ) : (
+                    <GuessingInterface
+                      guess={guess}
+                      onGuessChange={setGuess}
+                      onGuessSubmit={handleGuess}
+                    />
+                  )}
+                </div>
+                <ActiveUsersList />
               </div>
-              <ActiveUsersList />
-            </div>
+            </>
           ) : (
-            <GameOver
-              onPlayAgain={() => {
-                setIsPlaying(true);
-                handleNewWord();
-              }}
-            />
+            <>
+              <Logo />
+              <GameOver
+                onPlayAgain={() => {
+                  setIsPlaying(true);
+                  handleNewWord();
+                }}
+              />
+            </>
           )}
         </div>
       </div>
