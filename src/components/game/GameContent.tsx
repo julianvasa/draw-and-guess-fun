@@ -29,19 +29,34 @@ export const GameContent = () => {
 
   useEffect(() => {
     if (roomId) {
-      const syncWord = () => {
-        const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
-        if (roomData.currentWord && roomData.currentWord !== currentWord) {
-          console.log("Syncing word:", roomData.currentWord);
-          setCurrentWord(roomData.currentWord);
+      const syncRoomData = () => {
+        const roomData = sessionStorage.getItem(roomId);
+        if (!roomData) {
+          toast.error("Room not found");
+          handleLeaveRoom();
+          return;
+        }
+
+        const parsedData = JSON.parse(roomData);
+        if (parsedData.currentWord && parsedData.currentWord !== currentWord) {
+          console.log("Syncing word:", parsedData.currentWord);
+          setCurrentWord(parsedData.currentWord);
+        }
+
+        if (parsedData.users) {
+          setUsers(parsedData.users);
+        }
+
+        if (parsedData.currentDrawingUser) {
+          setCurrentDrawingUser(parsedData.currentDrawingUser);
         }
       };
 
-      syncWord();
-      const interval = setInterval(syncWord, 1000);
+      syncRoomData();
+      const interval = setInterval(syncRoomData, 1000);
       return () => clearInterval(interval);
     }
-  }, [roomId, currentWord]);
+  }, [roomId, currentWord, setUsers, setCurrentDrawingUser]);
 
   const handleNewWord = () => {
     const newWord = getRandomWord();
@@ -84,30 +99,45 @@ export const GameContent = () => {
     }));
     
     console.log("Room created:", newRoomId);
+    toast.success("Room created successfully!");
   };
 
   const handleJoinRoom = (id: string) => {
+    const roomData = sessionStorage.getItem(id);
+    if (!roomData) {
+      toast.error("Room not found");
+      return;
+    }
+
+    const parsedData = JSON.parse(roomData);
+    const existingUser = parsedData.users?.find((u: { id: string }) => u.id === userId);
+    
+    if (existingUser) {
+      toast.error("You are already in this room");
+      return;
+    }
+
     setRoomId(id);
     setSearchParams({ room: id });
     setIsPlaying(true);
     
-    const roomData = JSON.parse(sessionStorage.getItem(id) || "{}");
     const newUser = { id: userId, name: username, points: 0 };
-    const updatedUsers = [...(roomData.users || []), newUser];
+    const updatedUsers = [...(parsedData.users || []), newUser];
     
-    if (roomData.currentWord) {
-      setCurrentWord(roomData.currentWord);
+    if (parsedData.currentWord) {
+      setCurrentWord(parsedData.currentWord);
     }
     
     sessionStorage.setItem(id, JSON.stringify({ 
-      ...roomData,
+      ...parsedData,
       users: updatedUsers,
-      currentDrawingUser: roomData.currentDrawingUser || userId
+      currentDrawingUser: parsedData.currentDrawingUser || userId
     }));
     
     setUsers(updatedUsers);
-    setCurrentDrawingUser(roomData.currentDrawingUser || userId);
+    setCurrentDrawingUser(parsedData.currentDrawingUser || userId);
     console.log("Joined room:", id);
+    toast.success("Joined room successfully!");
   };
 
   const handleGuess = () => {
@@ -120,10 +150,19 @@ export const GameContent = () => {
         return user;
       });
       setUsers(updatedUsers);
+      if (roomId) {
+        const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
+        sessionStorage.setItem(roomId, JSON.stringify({
+          ...roomData,
+          users: updatedUsers
+        }));
+      }
       handleTimeUp();
       handleNewWord();
+      toast.success("Correct guess! +10 points");
     } else {
       console.log("Wrong guess:", guess);
+      toast.error("Wrong guess, try again!");
     }
     setGuess("");
   };
@@ -132,17 +171,24 @@ export const GameContent = () => {
     if (roomId) {
       const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
       const updatedUsers = roomData.users.filter((user: { id: string }) => user.id !== userId);
-      sessionStorage.setItem(roomId, JSON.stringify({ 
-        ...roomData, 
-        users: updatedUsers,
-        currentDrawingUser: updatedUsers.length > 0 ? updatedUsers[0].id : null
-      }));
+      
+      if (updatedUsers.length === 0) {
+        sessionStorage.removeItem(roomId);
+      } else {
+        sessionStorage.setItem(roomId, JSON.stringify({ 
+          ...roomData, 
+          users: updatedUsers,
+          currentDrawingUser: updatedUsers[0].id
+        }));
+      }
+      
       setUsers(updatedUsers);
     }
     setRoomId(null);
     setSearchParams({});
     setIsPlaying(false);
     console.log("Left room");
+    toast.success("Left room successfully");
   };
 
   const handleCopyRoomLink = () => {
