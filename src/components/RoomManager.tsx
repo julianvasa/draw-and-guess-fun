@@ -45,11 +45,6 @@ export const RoomManager = ({ onJoinRoom, onCreateRoom }: RoomManagerProps) => {
   if (showNameInput) {
     return (
       <div className="flex flex-col items-center gap-6 animate-fade-in">
-        <div className="space-y-4 text-center">
-          <h2 className="text-2xl font-bold">Enter Your Name</h2>
-          <p className="text-muted-foreground">Please enter your name to continue</p>
-        </div>
-        
         <div className="flex flex-col gap-4 w-full max-w-sm">
           <Input
             placeholder="Your name"
@@ -75,11 +70,6 @@ export const RoomManager = ({ onJoinRoom, onCreateRoom }: RoomManagerProps) => {
 
   return (
     <div className="flex flex-col items-center gap-6 animate-fade-in">
-      <div className="space-y-4 text-center">
-        <h2 className="text-2xl font-bold">Join or Create a Room</h2>
-        <p className="text-muted-foreground">Play with friends by joining their room or create your own!</p>
-      </div>
-      
       <div className="flex flex-col gap-4 w-full max-w-sm">
         <div className="flex gap-2">
           <Input
