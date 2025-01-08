@@ -11,7 +11,15 @@ export const GameTimer = ({ duration, onTimeUp }: GameTimerProps) => {
   const progress = (timeLeft / duration) * 100;
 
   useEffect(() => {
+    console.log("Timer started with duration:", duration);
+    setTimeLeft(duration);
+  }, [duration]);
+
+  useEffect(() => {
+    console.log("Current time left:", timeLeft);
+    
     if (timeLeft <= 0) {
+      console.log("Time's up! Calling onTimeUp callback");
       onTimeUp();
       return;
     }
@@ -20,7 +28,10 @@ export const GameTimer = ({ duration, onTimeUp }: GameTimerProps) => {
       setTimeLeft((prev) => prev - 1);
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      console.log("Clearing timer interval");
+      clearInterval(timer);
+    };
   }, [timeLeft, onTimeUp]);
 
   return (
