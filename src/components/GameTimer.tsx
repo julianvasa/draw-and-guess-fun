@@ -16,23 +16,26 @@ export const GameTimer = ({ duration, onTimeUp }: GameTimerProps) => {
   }, [duration]);
 
   useEffect(() => {
-    console.log("Current time left:", timeLeft);
-    
-    if (timeLeft <= 0) {
-      console.log("Time's up! Calling onTimeUp callback");
-      onTimeUp();
-      return;
-    }
-
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      console.log("Timer tick - current time:", timeLeft);
+      setTimeLeft((prevTime) => {
+        const newTime = prevTime - 1;
+        console.log("New time will be:", newTime);
+        if (newTime <= 0) {
+          clearInterval(timer);
+          console.log("Time's up! Calling onTimeUp callback");
+          onTimeUp();
+          return 0;
+        }
+        return newTime;
+      });
     }, 1000);
 
     return () => {
-      console.log("Clearing timer interval");
+      console.log("Cleaning up timer");
       clearInterval(timer);
     };
-  }, [timeLeft, onTimeUp]);
+  }, [onTimeUp]); // Only recreate interval when onTimeUp changes
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
