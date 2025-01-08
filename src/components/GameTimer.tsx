@@ -34,11 +34,17 @@ export const GameTimer = ({ duration, onTimeUp }: GameTimerProps) => {
     };
   }, [timeLeft, onTimeUp]);
 
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes} minute${minutes !== 1 ? 's' : ''} ${remainingSeconds} second${remainingSeconds !== 1 ? 's' : ''}`;
+  };
+
   return (
     <div className="w-full max-w-md space-y-2">
       <Progress value={progress} className="h-2" />
       <p className="text-center text-sm text-game-text">
-        Time left: {timeLeft} seconds
+        Time left: {formatTime(timeLeft)}
       </p>
     </div>
   );
