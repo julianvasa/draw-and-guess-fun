@@ -27,15 +27,15 @@ export const GameContent = () => {
   const { guess, setGuess, handleGuess } = useGame(roomId, () => setIsPlaying(false), handleNewWord);
 
   return (
-    <div className="min-h-screen bg-game-background">
+    <div className="min-h-screen bg-game-background pt-16">
       <RoomHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <div className="max-w-7xl mx-auto">
           <Logo />
           {!roomId ? (
             <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
           ) : isPlaying ? (
-            <div className="flex gap-8">
+            <div className="flex flex-col lg:flex-row gap-8">
               <div className="flex-1">
                 {currentDrawingUser === userId ? (
                   <DrawingInterface
@@ -52,7 +52,9 @@ export const GameContent = () => {
                   />
                 )}
               </div>
-              <ActiveUsersList />
+              <div className="w-full lg:w-48">
+                <ActiveUsersList />
+              </div>
             </div>
           ) : (
             <GameOver
