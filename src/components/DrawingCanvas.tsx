@@ -5,6 +5,7 @@ import { createShape } from "./shapes/ShapeFactory";
 import { ColorPicker } from "./canvas/ColorPicker";
 import { CanvasTools } from "./canvas/CanvasTools";
 import { HintShapes } from "./shapes/HintShapes";
+import { ShapeControls } from "./shapes/ShapeControls";
 
 interface DrawingCanvasProps {
   onFinishDrawing: () => void;
@@ -151,7 +152,10 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
       </div>
       <div className="flex gap-2 items-center">
         <ColorPicker currentColor={currentColor} onColorChange={handleColorChange} />
-        <HintShapes word={currentWord} onAddShape={addShape} />
+        <div className="flex gap-4 items-center">
+          <ShapeControls onAddShape={addShape} />
+          <HintShapes word={currentWord} onAddShape={addShape} />
+        </div>
         <CanvasTools
           isEraser={isEraser}
           onToggleEraser={toggleEraser}
