@@ -4,6 +4,9 @@ interface ShapeOptions {
   left: number;
   top: number;
   fill: string;
+  width?: number;
+  height?: number;
+  radius?: number;
 }
 
 export const createShape = (
@@ -24,19 +27,19 @@ export const createShape = (
     case 'rectangle':
       return new Rect({
         ...commonProps,
-        width: 100,
-        height: 60,
+        width: options.width || 100,
+        height: options.height || 60,
       });
     case 'circle':
       return new Circle({
         ...commonProps,
-        radius: 30,
+        radius: options.radius || 30,
       });
     case 'triangle':
       return new Triangle({
         ...commonProps,
-        width: 100,
-        height: 100,
+        width: options.width || 100,
+        height: options.height || 100,
       });
   }
 };

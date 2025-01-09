@@ -23,7 +23,10 @@ export const DrawingInterface = ({
       <div className="flex justify-center mb-6">
         <GameTimer duration={60} onTimeUp={onTimeUp} />
       </div>
-      <DrawingCanvas onFinishDrawing={onFinishDrawing} />
+      <DrawingCanvas 
+        onFinishDrawing={onFinishDrawing} 
+        currentWord={currentWord}
+      />
     </>
   );
 };

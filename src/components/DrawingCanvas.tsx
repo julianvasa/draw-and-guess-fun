@@ -4,10 +4,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Eraser, Paintbrush, Undo2, X } from "lucide-react";
 import { ShapeControls } from "./shapes/ShapeControls";
+import { HintShapes } from "./shapes/HintShapes";
 import { createShape } from "./shapes/ShapeFactory";
 
 interface DrawingCanvasProps {
   onFinishDrawing: () => void;
+  currentWord: string;
 }
 
 const COLORS = {
@@ -23,7 +25,7 @@ const COLORS = {
 
 const SYNC_INTERVAL = 100;
 
-export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
+export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [isEraser, setIsEraser] = useState(false);
@@ -108,7 +110,7 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
     console.log("Canvas broadcasted to storage");
   };
 
-  const addShape = (shapeType: 'rectangle' | 'circle' | 'triangle') => {
+  const addShape = (shapeType: 'rectangle' | 'circle' | 'triangle', size?: { width?: number; height?: number; radius?: number }) => {
     if (!fabricCanvas) return;
 
     const center = fabricCanvas.getCenter();
@@ -116,6 +118,7 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
       left: center.left,
       top: center.top,
       fill: currentColor,
+      ...size,
     });
 
     fabricCanvas.isDrawingMode = false; // Disable drawing mode to allow shape manipulation
@@ -179,6 +182,7 @@ export const DrawingCanvas = ({ onFinishDrawing }: DrawingCanvasProps) => {
           ))}
         </div>
         <ShapeControls onAddShape={addShape} />
+        <HintShapes word={currentWord} onAddShape={addShape} />
         <Button
           variant="outline"
           size="icon"
