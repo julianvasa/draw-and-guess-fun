@@ -13,9 +13,11 @@ export const GameContent = () => {
   const { 
     roomId, 
     isPlaying, 
-    currentWord, 
+    currentWord,
+    wordOptions, 
     userId,
     handleNewWord,
+    handleWordSelect,
     handleCreateRoom,
     handleJoinRoom,
     handleLeaveRoom,
@@ -43,6 +45,8 @@ export const GameContent = () => {
                     onNewWord={handleNewWord}
                     onTimeUp={() => setIsPlaying(false)}
                     onFinishDrawing={() => setIsPlaying(false)}
+                    wordOptions={wordOptions}
+                    onWordSelect={handleWordSelect}
                   />
                 ) : (
                   <GuessingInterface

@@ -4,21 +4,31 @@ import { toast } from "sonner";
 import { useUser } from "@/contexts/UserContext";
 import { getRandomWord } from "@/utils/wordUtils";
 
-// Remove the static WORDS array since we're now using the API
 export const useRoom = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentWord, setCurrentWord] = useState<string>("");
+  const [wordOptions, setWordOptions] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [roomId, setRoomId] = useState<string | null>(searchParams.get("room"));
   const { username, users, setUsers, currentDrawingUser, setCurrentDrawingUser } = useUser();
   const userId = useState(() => Math.random().toString(36).substring(7))[0];
 
-  // Initialize with a random word
+  // Initialize with random words
   useEffect(() => {
     if (!currentWord) {
-      getRandomWord().then(word => setCurrentWord(word));
+      fetchWordOptions();
     }
   }, [currentWord]);
+
+  const fetchWordOptions = async () => {
+    const words = await Promise.all([
+      getRandomWord(),
+      getRandomWord(),
+      getRandomWord()
+    ]);
+    setWordOptions(words);
+    setCurrentWord(words[0]); // Set default selected word
+  };
 
   useEffect(() => {
     if (roomId) {
@@ -52,14 +62,24 @@ export const useRoom = () => {
   }, [roomId, currentWord, setUsers, setCurrentDrawingUser]);
 
   const handleNewWord = async () => {
-    const newWord = await getRandomWord();
-    console.log("Setting new word:", newWord);
-    setCurrentWord(newWord);
+    await fetchWordOptions();
     if (roomId) {
       const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
       sessionStorage.setItem(roomId, JSON.stringify({
         ...roomData,
-        currentWord: newWord
+        currentWord: wordOptions[0]
+      }));
+    }
+  };
+
+  const handleWordSelect = (word: string) => {
+    console.log("Selected word:", word);
+    setCurrentWord(word);
+    if (roomId) {
+      const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
+      sessionStorage.setItem(roomId, JSON.stringify({
+        ...roomData,
+        currentWord: word
       }));
     }
   };
@@ -149,8 +169,10 @@ export const useRoom = () => {
     roomId,
     isPlaying,
     currentWord,
+    wordOptions,
     userId,
     handleNewWord,
+    handleWordSelect,
     handleCreateRoom,
     handleJoinRoom,
     handleLeaveRoom,
