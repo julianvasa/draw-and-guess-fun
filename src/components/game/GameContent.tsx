@@ -3,6 +3,7 @@ import { DrawingInterface } from "@/components/DrawingInterface";
 import { GuessingInterface } from "@/components/GuessingInterface";
 import { GameOver } from "@/components/GameOver";
 import { ActiveUsersList } from "@/components/ActiveUsersList";
+import { Logo } from "@/components/Logo";
 import { RoomHeader } from "./RoomHeader";
 import { useRoom } from "@/hooks/useRoom";
 import { useGame } from "@/hooks/useGame";
@@ -30,6 +31,7 @@ export const GameContent = () => {
       <RoomHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
       <div className="p-4 sm:p-8">
         <div className="max-w-7xl mx-auto">
+          <Logo />
           {!roomId ? (
             <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
           ) : isPlaying ? (
