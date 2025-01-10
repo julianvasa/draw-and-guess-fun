@@ -25,13 +25,13 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#1CA7EC",
-          hover: "#1F2F98",
+          DEFAULT: "#8B5CF6",
+          hover: "#7C3AED",
           foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "#4ADEDE",
-          hover: "#1AA7EC",
+          DEFAULT: "#D946EF",
+          hover: "#C026D3",
           foreground: "#FFFFFF",
         },
         canvas: {
@@ -39,8 +39,8 @@ export default {
           border: "#E2E8F0",
         },
         game: {
-          background: "#F8FAFC",
-          text: "#1E293B",
+          background: "#F1F0FB",
+          text: "#4A5568",
         },
       },
       borderRadius: {
@@ -57,10 +57,15 @@ export default {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(0)" },
         },
+        "bounce-light": {
+          "0%, 100%": { transform: "translateY(-2%)" },
+          "50%": { transform: "translateY(0)" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.3s ease-out",
         "slide-in": "slide-in 0.4s ease-out",
+        "bounce-light": "bounce-light 2s ease-in-out infinite",
       },
     },
   },

@@ -146,11 +146,11 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 animate-fade-in">
-      <div className="border-2 border-canvas-border rounded-lg shadow-lg overflow-hidden">
+    <div className="flex flex-col items-center gap-6 animate-fade-in">
+      <div className="border-4 border-primary/20 rounded-2xl shadow-xl overflow-hidden transition-transform duration-300 hover:shadow-2xl transform hover:-translate-y-1">
         <canvas ref={canvasRef} />
       </div>
-      <div className="flex gap-2 items-center">
+      <div className="flex gap-4 items-center bg-white p-4 rounded-2xl shadow-lg border-2 border-primary/20">
         <ColorPicker currentColor={currentColor} onColorChange={handleColorChange} />
         <div className="flex gap-4 items-center">
           <ShapeControls onAddShape={addShape} />
