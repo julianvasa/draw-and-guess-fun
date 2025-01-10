@@ -2,21 +2,23 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useUser } from "@/contexts/UserContext";
+import { getRandomWord } from "@/utils/wordUtils";
 
-const WORDS = [
-  "elephant", "pizza", "rainbow", "computer", "beach",
-  "bicycle", "guitar", "penguin", "rocket", "butterfly"
-];
-
-const getRandomWord = () => WORDS[Math.floor(Math.random() * WORDS.length)];
-
+// Remove the static WORDS array since we're now using the API
 export const useRoom = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [currentWord, setCurrentWord] = useState(getRandomWord());
+  const [currentWord, setCurrentWord] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [roomId, setRoomId] = useState<string | null>(searchParams.get("room"));
   const { username, users, setUsers, currentDrawingUser, setCurrentDrawingUser } = useUser();
   const userId = useState(() => Math.random().toString(36).substring(7))[0];
+
+  // Initialize with a random word
+  useEffect(() => {
+    if (!currentWord) {
+      getRandomWord().then(word => setCurrentWord(word));
+    }
+  }, [currentWord]);
 
   useEffect(() => {
     if (roomId) {
@@ -49,8 +51,9 @@ export const useRoom = () => {
     }
   }, [roomId, currentWord, setUsers, setCurrentDrawingUser]);
 
-  const handleNewWord = () => {
-    const newWord = getRandomWord();
+  const handleNewWord = async () => {
+    const newWord = await getRandomWord();
+    console.log("Setting new word:", newWord);
     setCurrentWord(newWord);
     if (roomId) {
       const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
