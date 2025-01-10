@@ -60,8 +60,7 @@ export const GameTimer = ({ duration, onTimeUp, isActive = false }: GameTimerPro
       </div>
       <Progress 
         value={progress} 
-        className="h-3 bg-secondary/20" 
-        indicatorClassName="bg-gradient-to-r from-primary to-secondary transition-all duration-500"
+        className="h-3 bg-secondary/20 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-secondary [&>div]:transition-all [&>div]:duration-500"
       />
       {!isActive && (
         <p className="text-center text-sm text-game-text opacity-75 animate-bounce-light">
