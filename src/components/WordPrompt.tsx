@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Shuffle } from "lucide-react";
 import { useState } from "react";
 
 interface WordPromptProps {
@@ -37,9 +36,6 @@ export const WordPrompt = ({ word, onNewWord, wordOptions, onWordSelect }: WordP
             </Button>
           ))}
         </div>
-        <Button variant="ghost" size="icon" onClick={onNewWord} className="self-end">
-          <Shuffle className="h-4 w-4" />
-        </Button>
       </div>
     );
   }
@@ -47,9 +43,6 @@ export const WordPrompt = ({ word, onNewWord, wordOptions, onWordSelect }: WordP
   return (
     <div className="flex items-center gap-4 p-4 bg-white rounded-lg shadow animate-fade-in">
       <h2 className="text-xl font-semibold text-game-text">Draw: {selectedWord}</h2>
-      <Button variant="ghost" size="icon" onClick={onNewWord}>
-        <Shuffle className="h-4 w-4" />
-      </Button>
     </div>
   );
 };
