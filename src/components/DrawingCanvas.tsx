@@ -26,8 +26,8 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
     if (!canvasRef.current) return;
 
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: 600,
-      height: 400,
+      width: 800,
+      height: 600,
       backgroundColor: "#ffffff",
       isDrawingMode: true,
     });
@@ -146,13 +146,13 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 animate-fade-in">
-      <div className="border-4 border-primary/20 rounded-2xl shadow-xl overflow-hidden transition-transform duration-300 hover:shadow-2xl transform hover:-translate-y-1">
-        <canvas ref={canvasRef} />
+    <div className="flex flex-col items-center gap-6 animate-fade-in w-full max-w-[95vw] lg:max-w-[80vw] mx-auto">
+      <div className="border-4 border-primary/20 rounded-2xl shadow-xl overflow-hidden transition-transform duration-300 hover:shadow-2xl transform hover:-translate-y-1 w-full">
+        <canvas ref={canvasRef} className="w-full h-full" />
       </div>
-      <div className="flex gap-4 items-center bg-white p-4 rounded-2xl shadow-lg border-2 border-primary/20">
+      <div className="flex flex-wrap justify-center gap-4 items-center bg-white p-4 rounded-2xl shadow-lg border-2 border-primary/20 w-full">
         <ColorPicker currentColor={currentColor} onColorChange={handleColorChange} />
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-wrap gap-4 items-center justify-center">
           <ShapeControls onAddShape={addShape} />
           <HintShapes word={currentWord} onAddShape={addShape} />
         </div>

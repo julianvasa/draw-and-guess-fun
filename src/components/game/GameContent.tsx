@@ -32,13 +32,13 @@ export const GameContent = () => {
     <div className="min-h-screen bg-game-background pt-16">
       <RoomHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
       <div className="p-4 sm:p-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1600px] mx-auto">
           <Logo />
           {!roomId ? (
             <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
           ) : isPlaying ? (
             <div className="flex flex-col lg:flex-row gap-8">
-              <div className="flex-1">
+              <div className="flex-1 order-2 lg:order-1">
                 {currentDrawingUser === userId ? (
                   <DrawingInterface
                     currentWord={currentWord}
@@ -56,7 +56,7 @@ export const GameContent = () => {
                   />
                 )}
               </div>
-              <div className="w-full lg:w-48">
+              <div className="w-full lg:w-64 order-1 lg:order-2">
                 <ActiveUsersList />
               </div>
             </div>
