@@ -16,6 +16,7 @@ const SYNC_INTERVAL = 100;
 
 export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [isEraser, setIsEraser] = useState(false);
   const [currentColor, setCurrentColor] = useState("#000000");
@@ -23,11 +24,15 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
   const lastSyncRef = useRef<string>("");
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !containerRef.current) return;
+
+    const container = containerRef.current;
+    const containerWidth = container.clientWidth;
+    const containerHeight = Math.min(600, window.innerHeight * 0.6);
 
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: 800,
-      height: 600,
+      width: containerWidth,
+      height: containerHeight,
       backgroundColor: "#ffffff",
       isDrawingMode: true,
     });
@@ -52,6 +57,15 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
 
     setFabricCanvas(canvas);
 
+    const handleResize = () => {
+      const newWidth = container.clientWidth;
+      const newHeight = Math.min(600, window.innerHeight * 0.6);
+      canvas.setDimensions({ width: newWidth, height: newHeight });
+      canvas.renderAll();
+    };
+
+    window.addEventListener('resize', handleResize);
+
     syncIntervalRef.current = window.setInterval(() => {
       if (canvas) {
         const roomId = new URLSearchParams(window.location.search).get("room");
@@ -73,6 +87,7 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
       if (syncIntervalRef.current) {
         clearInterval(syncIntervalRef.current);
       }
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
@@ -147,8 +162,8 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
 
   return (
     <div className="flex flex-col items-center gap-6 animate-fade-in w-full max-w-[95vw] lg:max-w-[80vw] mx-auto">
-      <div className="border-4 border-primary/20 rounded-2xl shadow-xl overflow-hidden transition-transform duration-300 hover:shadow-2xl transform hover:-translate-y-1 w-full">
-        <canvas ref={canvasRef} className="w-full h-full" />
+      <div ref={containerRef} className="border-4 border-primary/20 rounded-2xl shadow-xl overflow-hidden transition-transform duration-300 hover:shadow-2xl transform hover:-translate-y-1 w-full">
+        <canvas ref={canvasRef} />
       </div>
       <div className="flex flex-wrap justify-center gap-4 items-center bg-white p-4 rounded-2xl shadow-lg border-2 border-primary/20 w-full">
         <ColorPicker currentColor={currentColor} onColorChange={handleColorChange} />
