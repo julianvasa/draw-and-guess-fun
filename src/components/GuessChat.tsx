@@ -56,8 +56,8 @@ export const GuessChat = ({ roomId }: { roomId: string }) => {
 
   return (
     <div className="w-64 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-      <h3 className="text-sm font-semibold mb-3">Player Guesses</h3>
-      <ScrollArea className="h-[200px] mb-4 pr-4">
+      <h3 className="text-sm font-semibold mb-3">Chat</h3>
+      <ScrollArea className="h-[400px] mb-4 pr-4">
         <div className="space-y-2">
           {messages.map((msg, index) => (
             <div
