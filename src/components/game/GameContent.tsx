@@ -3,6 +3,7 @@ import { DrawingInterface } from "@/components/DrawingInterface";
 import { GuessingInterface } from "@/components/GuessingInterface";
 import { GameOver } from "@/components/GameOver";
 import { ActiveUsersList } from "@/components/ActiveUsersList";
+import { GuessChat } from "@/components/GuessChat";
 import { Logo } from "@/components/Logo";
 import { RoomHeader } from "./RoomHeader";
 import { useRoom } from "@/hooks/useRoom";
@@ -56,8 +57,9 @@ export const GameContent = () => {
                   />
                 )}
               </div>
-              <div className="w-full lg:w-64 order-1 lg:order-2">
+              <div className="w-full lg:w-64 order-1 lg:order-2 flex flex-col gap-4">
                 <ActiveUsersList />
+                {roomId && <GuessChat roomId={roomId} />}
               </div>
             </div>
           ) : (
