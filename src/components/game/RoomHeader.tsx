@@ -4,9 +4,18 @@ import { GameHeader } from "@/components/GameHeader";
 interface RoomHeaderProps {
   roomId: string | null;
   onLeaveRoom: () => void;
+  duration?: number;
+  onTimeUp?: () => void;
+  isActive?: boolean;
 }
 
-export const RoomHeader = ({ roomId, onLeaveRoom }: RoomHeaderProps) => {
+export const RoomHeader = ({ 
+  roomId, 
+  onLeaveRoom,
+  duration,
+  onTimeUp,
+  isActive 
+}: RoomHeaderProps) => {
   const handleCopyRoomLink = () => {
     const url = new URL(window.location.href);
     navigator.clipboard.writeText(url.toString());
@@ -19,6 +28,9 @@ export const RoomHeader = ({ roomId, onLeaveRoom }: RoomHeaderProps) => {
       roomId={roomId} 
       onLeaveRoom={onLeaveRoom} 
       onCopyRoomLink={handleCopyRoomLink}
+      duration={duration}
+      onTimeUp={onTimeUp}
+      isActive={isActive}
     />
   );
 };

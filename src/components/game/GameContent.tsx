@@ -31,7 +31,13 @@ export const GameContent = () => {
 
   return (
     <div className="min-h-screen bg-game-background">
-      <RoomHeader roomId={roomId} onLeaveRoom={handleLeaveRoom} />
+      <RoomHeader 
+        roomId={roomId} 
+        onLeaveRoom={handleLeaveRoom}
+        duration={120}
+        onTimeUp={() => setIsPlaying(false)}
+        isActive={isPlaying && !!currentWord}
+      />
       <div className="p-4">
         <div className="max-w-[1800px] mx-auto">
           <Logo />

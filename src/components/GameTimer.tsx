@@ -5,9 +5,10 @@ interface GameTimerProps {
   duration: number;
   onTimeUp: () => void;
   isActive?: boolean;
+  className?: string;
 }
 
-export const GameTimer = ({ duration, onTimeUp, isActive = false }: GameTimerProps) => {
+export const GameTimer = ({ duration, onTimeUp, isActive = false, className = "" }: GameTimerProps) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const progress = (timeLeft / duration) * 100;
 
@@ -51,19 +52,19 @@ export const GameTimer = ({ duration, onTimeUp, isActive = false }: GameTimerPro
   };
 
   return (
-    <div className="w-full max-w-md space-y-4 p-6 bg-white rounded-2xl shadow-lg animate-fade-in border-2 border-primary/20">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-semibold text-game-text">Time Remaining</h3>
-        <span className="text-2xl font-bold text-primary">
+    <div className={`space-y-2 ${className}`}>
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-medium text-game-text">Time Remaining</span>
+        <span className="text-lg font-bold text-primary">
           {formatTime(timeLeft)}
         </span>
       </div>
       <Progress 
         value={progress} 
-        className="h-3 bg-secondary/20 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-secondary [&>div]:transition-all [&>div]:duration-500"
+        className="h-2 bg-secondary/20 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-secondary [&>div]:transition-all [&>div]:duration-500"
       />
       {!isActive && (
-        <p className="text-center text-sm text-game-text opacity-75 animate-bounce-light">
+        <p className="text-xs text-game-text opacity-75">
           Select a word to start the timer
         </p>
       )}
