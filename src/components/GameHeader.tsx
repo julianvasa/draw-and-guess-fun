@@ -24,24 +24,22 @@ export const GameHeader = ({
   return (
     <div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-gray-200 p-4 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
-        <div className="flex items-center gap-4">
-          <div 
-            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors bg-white/90 rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-all duration-300"
-            onClick={onCopyRoomLink}
-            title="Click to copy room URL"
-          >
-            <Home className="h-4 w-4 animate-pulse" />
-            <p className="text-sm font-medium">Room: {roomId}</p>
-          </div>
-          {duration && onTimeUp && (
-            <GameTimer 
-              duration={duration} 
-              onTimeUp={onTimeUp} 
-              isActive={isActive}
-              className="w-[300px]"
-            />
-          )}
+        <div 
+          className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors bg-white/90 rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-all duration-300"
+          onClick={onCopyRoomLink}
+          title="Click to copy room URL"
+        >
+          <Home className="h-4 w-4 animate-pulse" />
+          <p className="text-sm font-medium">Room: {roomId}</p>
         </div>
+        {duration && onTimeUp && (
+          <GameTimer 
+            duration={duration} 
+            onTimeUp={onTimeUp} 
+            isActive={isActive}
+            className="flex-1 mx-4"
+          />
+        )}
         <Button 
           variant="destructive" 
           size="sm" 

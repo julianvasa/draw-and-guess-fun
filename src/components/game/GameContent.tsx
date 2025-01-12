@@ -38,7 +38,7 @@ export const GameContent = () => {
         onTimeUp={() => setIsPlaying(false)}
         isActive={isPlaying && !!currentWord}
       />
-      <div className="p-4">
+      <div className="p-4 pt-20">
         <div className="max-w-[1800px] mx-auto">
           <Logo />
           {!roomId ? (
