@@ -55,9 +55,9 @@ export const GuessChat = ({ roomId }: { roomId: string }) => {
   };
 
   return (
-    <div className="w-64 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+    <div className="w-64 bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col h-[600px]">
       <h3 className="text-sm font-semibold mb-3">Chat</h3>
-      <ScrollArea className="h-[400px] mb-4 pr-4">
+      <ScrollArea className="flex-1 mb-4 pr-4">
         <div className="space-y-2">
           {messages.map((msg, index) => (
             <div
@@ -70,7 +70,7 @@ export const GuessChat = ({ roomId }: { roomId: string }) => {
           ))}
         </div>
       </ScrollArea>
-      <form onSubmit={handleSubmitGuess} className="flex gap-2">
+      <form onSubmit={handleSubmitGuess} className="mt-auto">
         <Input
           value={guess}
           onChange={(e) => setGuess(e.target.value)}

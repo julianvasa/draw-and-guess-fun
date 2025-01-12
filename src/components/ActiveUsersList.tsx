@@ -4,7 +4,7 @@ export const ActiveUsersList = () => {
   const { users, currentDrawingUser } = useUser();
 
   return (
-    <div className="w-64 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+    <div className="w-64 bg-white p-4 rounded-lg shadow-sm border border-gray-200 h-[600px]">
       <h3 className="text-sm font-semibold mb-3">Players</h3>
       <div className="flex flex-col gap-2">
         {users.map((user, index) => (
