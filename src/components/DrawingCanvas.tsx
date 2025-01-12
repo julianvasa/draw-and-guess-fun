@@ -20,6 +20,7 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [isEraser, setIsEraser] = useState(false);
   const [currentColor, setCurrentColor] = useState("#000000");
+  const [currentOpacity, setCurrentOpacity] = useState(1);
   const syncIntervalRef = useRef<number>();
   const lastSyncRef = useRef<string>("");
 
@@ -117,6 +118,7 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
       left: center.left + (position?.x || 0),
       top: center.top + (position?.y || 0),
       fill: currentColor,
+      opacity: currentOpacity,
       ...size,
     });
 
@@ -167,6 +169,21 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
       </div>
       <div className="flex flex-wrap justify-center gap-4 items-center bg-white p-4 rounded-2xl shadow-lg border-2 border-primary/20 w-full">
         <ColorPicker currentColor={currentColor} onColorChange={handleColorChange} />
+        <div className="flex items-center gap-2">
+          <label htmlFor="opacity" className="text-sm font-medium">
+            Opacity:
+          </label>
+          <input
+            id="opacity"
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={currentOpacity}
+            onChange={(e) => setCurrentOpacity(parseFloat(e.target.value))}
+            className="w-24"
+          />
+        </div>
         <div className="flex flex-wrap gap-4 items-center justify-center">
           <ShapeControls onAddShape={addShape} />
           <HintShapes word={currentWord} onAddShape={addShape} />

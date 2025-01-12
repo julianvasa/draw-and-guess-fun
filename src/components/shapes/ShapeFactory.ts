@@ -7,6 +7,7 @@ interface ShapeOptions {
   width?: number;
   height?: number;
   radius?: number;
+  opacity?: number;
 }
 
 export const createShape = (
@@ -17,6 +18,7 @@ export const createShape = (
     left: options.left,
     top: options.top,
     fill: options.fill,
+    opacity: options.opacity || 1,
     originX: 'center' as const,
     originY: 'center' as const,
     selectable: true,
