@@ -1,5 +1,4 @@
 import { WordPrompt } from "@/components/WordPrompt";
-import { GameTimer } from "@/components/GameTimer";
 import { DrawingCanvas } from "@/components/DrawingCanvas";
 import { useState } from "react";
 
@@ -38,9 +37,6 @@ export const DrawingInterface = ({
           wordOptions={wordOptions}
           onWordSelect={handleWordSelect}
         />
-      </div>
-      <div className="flex justify-center mb-6">
-        <GameTimer duration={60} onTimeUp={onTimeUp} isActive={isTimerActive} />
       </div>
       <DrawingCanvas 
         onFinishDrawing={onFinishDrawing} 
