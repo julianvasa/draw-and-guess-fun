@@ -63,7 +63,7 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
       // Subscribe to canvas changes with proper typing
       const canvasSubscription = supabase
         .channel(`canvas:${roomId}`)
-        .on('postgres_changes', 
+        .on('postgres_changes' as any, 
           { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
           (payload: { new: Room }) => {
             if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {

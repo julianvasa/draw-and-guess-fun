@@ -25,7 +25,7 @@ export const useRoom = () => {
       // Subscribe to room changes
       const roomSubscription = supabase
         .channel(`room:${roomId}`)
-        .on('postgres_changes', 
+        .on('postgres_changes' as any, 
           { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
           async (payload: { new: Room }) => {
             console.log('Room updated:', payload);
@@ -40,7 +40,7 @@ export const useRoom = () => {
       // Subscribe to room users changes
       const usersSubscription = supabase
         .channel(`room_users:${roomId}`)
-        .on('postgres_changes',
+        .on('postgres_changes' as any,
           { event: '*', schema: 'public', table: 'room_users', filter: `room_id=eq.${roomId}` },
           async () => {
             console.log('Users updated, fetching latest');
