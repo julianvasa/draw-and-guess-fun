@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 interface GuessMessage {
   userId: string;
@@ -17,17 +18,20 @@ export const GuessChat = ({ roomId }: { roomId: string }) => {
   const [guess, setGuess] = useState("");
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const storedMessages = sessionStorage.getItem(`${roomId}-messages`);
-      if (storedMessages) {
-        setMessages(JSON.parse(storedMessages));
-      }
-    }, 1000);
+    // Subscribe to messages channel
+    const channel = supabase
+      .channel(`messages:${roomId}`)
+      .on('broadcast', { event: 'new-message' }, payload => {
+        setMessages(current => [...current, payload.message]);
+      })
+      .subscribe();
 
-    return () => clearInterval(interval);
+    return () => {
+      channel.unsubscribe();
+    };
   }, [roomId]);
 
-  const handleSubmitGuess = (e: React.FormEvent) => {
+  const handleSubmitGuess = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!guess.trim()) return;
 
@@ -46,11 +50,16 @@ export const GuessChat = ({ roomId }: { roomId: string }) => {
       timestamp: Date.now(),
     };
 
-    const updatedMessages = [...messages, newMessage];
-    setMessages(updatedMessages);
-    sessionStorage.setItem(`${roomId}-messages`, JSON.stringify(updatedMessages));
-    setGuess("");
+    // Broadcast message to all users in the room
+    await supabase
+      .channel(`messages:${roomId}`)
+      .send({
+        type: 'broadcast',
+        event: 'new-message',
+        payload: { message: newMessage },
+      });
 
+    setGuess("");
     console.log("New guess submitted:", newMessage);
   };
 

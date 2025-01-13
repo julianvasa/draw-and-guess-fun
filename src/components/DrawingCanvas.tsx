@@ -6,6 +6,7 @@ import { ColorPicker } from "./canvas/ColorPicker";
 import { CanvasTools } from "./canvas/CanvasTools";
 import { HintShapes } from "./shapes/HintShapes";
 import { ShapeControls } from "./shapes/ShapeControls";
+import { supabase } from "@/lib/supabase";
 
 interface DrawingCanvasProps {
   onFinishDrawing: () => void;
@@ -44,13 +45,41 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
     
     const roomId = new URLSearchParams(window.location.search).get("room");
     if (roomId) {
-      const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
-      if (roomData.canvasData) {
-        canvas.loadFromJSON(roomData.canvasData, () => {
-          canvas.renderAll();
-          console.log("Canvas loaded from storage");
+      // Load initial canvas data from Supabase
+      supabase
+        .from('rooms')
+        .select('canvas_data')
+        .eq('id', roomId)
+        .single()
+        .then(({ data }) => {
+          if (data?.canvas_data) {
+            canvas.loadFromJSON(data.canvas_data, () => {
+              canvas.renderAll();
+              console.log("Canvas loaded from Supabase");
+            });
+          }
         });
-      }
+
+      // Subscribe to canvas changes
+      const canvasSubscription = supabase
+        .channel(`canvas:${roomId}`)
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
+          (payload) => {
+            if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {
+              canvas.loadFromJSON(payload.new.canvas_data, () => {
+                canvas.renderAll();
+                console.log("Canvas synced from Supabase");
+              });
+              lastSyncRef.current = payload.new.canvas_data;
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        canvasSubscription.unsubscribe();
+      };
     }
 
     canvas.on('path:created', () => broadcastDrawing(canvas));
@@ -67,43 +96,26 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
 
     window.addEventListener('resize', handleResize);
 
-    syncIntervalRef.current = window.setInterval(() => {
-      if (canvas) {
-        const roomId = new URLSearchParams(window.location.search).get("room");
-        if (roomId) {
-          const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
-          if (roomData.canvasData && roomData.canvasData !== lastSyncRef.current) {
-            canvas.loadFromJSON(roomData.canvasData, () => {
-              canvas.renderAll();
-              console.log("Canvas synced from storage");
-            });
-            lastSyncRef.current = roomData.canvasData;
-          }
-        }
-      }
-    }, SYNC_INTERVAL);
-
     return () => {
       canvas.dispose();
-      if (syncIntervalRef.current) {
-        clearInterval(syncIntervalRef.current);
-      }
       window.removeEventListener('resize', handleResize);
     };
   }, []);
 
-  const broadcastDrawing = (canvas: FabricCanvas) => {
+  const broadcastDrawing = async (canvas: FabricCanvas) => {
     const roomId = new URLSearchParams(window.location.search).get("room");
     if (!roomId) return;
 
-    const canvasData = JSON.stringify(canvas.toJSON());
-    if (canvasData === lastSyncRef.current) return;
+    const canvasData = canvas.toJSON();
+    if (JSON.stringify(canvasData) === lastSyncRef.current) return;
 
-    const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
-    roomData.canvasData = canvasData;
-    sessionStorage.setItem(roomId, JSON.stringify(roomData));
-    lastSyncRef.current = canvasData;
-    console.log("Canvas broadcasted to storage");
+    await supabase
+      .from('rooms')
+      .update({ canvas_data: canvasData })
+      .eq('id', roomId);
+
+    lastSyncRef.current = JSON.stringify(canvasData);
+    console.log("Canvas broadcasted to Supabase");
   };
 
   const addShape = (

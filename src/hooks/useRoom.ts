@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useUser } from "@/contexts/UserContext";
 import { getRandomWord } from "@/utils/wordUtils";
+import { supabase } from "@/lib/supabase";
 
 export const useRoom = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -13,12 +14,89 @@ export const useRoom = () => {
   const { username, users, setUsers, currentDrawingUser, setCurrentDrawingUser } = useUser();
   const userId = useState(() => Math.random().toString(36).substring(7))[0];
 
-  // Initialize with random words
   useEffect(() => {
     if (!currentWord) {
       fetchWordOptions();
     }
   }, [currentWord]);
+
+  useEffect(() => {
+    if (roomId) {
+      // Subscribe to room changes
+      const roomSubscription = supabase
+        .channel(`room:${roomId}`)
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
+          async (payload) => {
+            console.log('Room updated:', payload);
+            if (payload.new) {
+              setCurrentWord(payload.new.current_word || '');
+              setCurrentDrawingUser(payload.new.current_drawing_user);
+            }
+          }
+        )
+        .subscribe();
+
+      // Subscribe to room users changes
+      const usersSubscription = supabase
+        .channel(`room_users:${roomId}`)
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'room_users', filter: `room_id=eq.${roomId}` },
+          async () => {
+            console.log('Users updated, fetching latest');
+            const { data: roomUsers } = await supabase
+              .from('room_users')
+              .select('*')
+              .eq('room_id', roomId);
+            
+            if (roomUsers) {
+              setUsers(roomUsers.map(user => ({
+                id: user.user_id,
+                name: user.username,
+                points: user.points
+              })));
+            }
+          }
+        )
+        .subscribe();
+
+      // Initial room data fetch
+      fetchRoomData();
+
+      return () => {
+        roomSubscription.unsubscribe();
+        usersSubscription.unsubscribe();
+      };
+    }
+  }, [roomId]);
+
+  const fetchRoomData = async () => {
+    if (!roomId) return;
+
+    const { data: room } = await supabase
+      .from('rooms')
+      .select('*')
+      .eq('id', roomId)
+      .single();
+
+    if (room) {
+      setCurrentWord(room.current_word || '');
+      setCurrentDrawingUser(room.current_drawing_user);
+    }
+
+    const { data: roomUsers } = await supabase
+      .from('room_users')
+      .select('*')
+      .eq('room_id', roomId);
+
+    if (roomUsers) {
+      setUsers(roomUsers.map(user => ({
+        id: user.user_id,
+        name: user.username,
+        points: user.points
+      })));
+    }
+  };
 
   const fetchWordOptions = async () => {
     const words = await Promise.all([
@@ -27,140 +105,156 @@ export const useRoom = () => {
       getRandomWord()
     ]);
     setWordOptions(words);
-    setCurrentWord(words[0]); // Set default selected word
+    setCurrentWord(words[0]);
   };
-
-  useEffect(() => {
-    if (roomId) {
-      const syncRoomData = () => {
-        const roomData = sessionStorage.getItem(roomId);
-        if (!roomData) {
-          toast.error("Room not found");
-          handleLeaveRoom();
-          return;
-        }
-
-        const parsedData = JSON.parse(roomData);
-        if (parsedData.currentWord && parsedData.currentWord !== currentWord) {
-          console.log("Syncing word:", parsedData.currentWord);
-          setCurrentWord(parsedData.currentWord);
-        }
-
-        if (parsedData.users) {
-          setUsers(parsedData.users);
-        }
-
-        if (parsedData.currentDrawingUser) {
-          setCurrentDrawingUser(parsedData.currentDrawingUser);
-        }
-      };
-
-      syncRoomData();
-      const interval = setInterval(syncRoomData, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [roomId, currentWord, setUsers, setCurrentDrawingUser]);
 
   const handleNewWord = async () => {
     await fetchWordOptions();
     if (roomId) {
-      const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
-      sessionStorage.setItem(roomId, JSON.stringify({
-        ...roomData,
-        currentWord: wordOptions[0]
-      }));
+      await supabase
+        .from('rooms')
+        .update({ current_word: wordOptions[0] })
+        .eq('id', roomId);
     }
   };
 
-  const handleWordSelect = (word: string) => {
+  const handleWordSelect = async (word: string) => {
     console.log("Selected word:", word);
     setCurrentWord(word);
     if (roomId) {
-      const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
-      sessionStorage.setItem(roomId, JSON.stringify({
-        ...roomData,
-        currentWord: word
-      }));
+      await supabase
+        .from('rooms')
+        .update({ current_word: word })
+        .eq('id', roomId);
     }
   };
 
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
     const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    // Create room in Supabase
+    const { error: roomError } = await supabase
+      .from('rooms')
+      .insert({
+        id: newRoomId,
+        current_drawing_user: userId,
+        current_word: currentWord
+      });
+
+    if (roomError) {
+      toast.error("Failed to create room");
+      return;
+    }
+
+    // Add creator to room_users
+    const { error: userError } = await supabase
+      .from('room_users')
+      .insert({
+        room_id: newRoomId,
+        user_id: userId,
+        username: username,
+        points: 0
+      });
+
+    if (userError) {
+      toast.error("Failed to join room");
+      return;
+    }
+
     setRoomId(newRoomId);
     setSearchParams({ room: newRoomId });
     setIsPlaying(true);
-    const newUser = { id: userId, name: username, points: 0 };
-    setUsers([newUser]);
     setCurrentDrawingUser(userId);
-    sessionStorage.setItem(newRoomId, JSON.stringify({ 
-      creator: newUser,
-      users: [newUser],
-      currentDrawingUser: userId,
-      currentWord
-    }));
     
     console.log("Room created:", newRoomId);
     toast.success("Room created successfully!");
   };
 
-  const handleJoinRoom = (id: string) => {
-    const roomData = sessionStorage.getItem(id);
-    if (!roomData) {
+  const handleJoinRoom = async (id: string) => {
+    // Check if room exists
+    const { data: room } = await supabase
+      .from('rooms')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (!room) {
       toast.error("Room not found");
       return;
     }
 
-    const parsedData = JSON.parse(roomData);
-    const existingUser = parsedData.users?.find((u: { id: string }) => u.id === userId);
-    
+    // Check if user is already in room
+    const { data: existingUser } = await supabase
+      .from('room_users')
+      .select('*')
+      .eq('room_id', id)
+      .eq('user_id', userId)
+      .single();
+
     if (existingUser) {
       toast.error("You are already in this room");
+      return;
+    }
+
+    // Add user to room
+    const { error: userError } = await supabase
+      .from('room_users')
+      .insert({
+        room_id: id,
+        user_id: userId,
+        username: username,
+        points: 0
+      });
+
+    if (userError) {
+      toast.error("Failed to join room");
       return;
     }
 
     setRoomId(id);
     setSearchParams({ room: id });
     setIsPlaying(true);
+    setCurrentWord(room.current_word || '');
+    setCurrentDrawingUser(room.current_drawing_user);
     
-    const newUser = { id: userId, name: username, points: 0 };
-    const updatedUsers = [...(parsedData.users || []), newUser];
-    
-    if (parsedData.currentWord) {
-      setCurrentWord(parsedData.currentWord);
-    }
-    
-    sessionStorage.setItem(id, JSON.stringify({ 
-      ...parsedData,
-      users: updatedUsers,
-      currentDrawingUser: parsedData.currentDrawingUser || userId
-    }));
-    
-    setUsers(updatedUsers);
-    setCurrentDrawingUser(parsedData.currentDrawingUser || userId);
     console.log("Joined room:", id);
     toast.success("Joined room successfully!");
   };
 
-  const handleLeaveRoom = () => {
+  const handleLeaveRoom = async () => {
     if (roomId) {
-      const roomData = JSON.parse(sessionStorage.getItem(roomId) || "{}");
-      const updatedUsers = roomData.users.filter((user: { id: string }) => user.id !== userId);
-      
-      if (updatedUsers.length === 0) {
-        sessionStorage.removeItem(roomId);
-      } else {
-        sessionStorage.setItem(roomId, JSON.stringify({ 
-          ...roomData, 
-          users: updatedUsers,
-          currentDrawingUser: updatedUsers[0].id
-        }));
+      // Remove user from room
+      await supabase
+        .from('room_users')
+        .delete()
+        .eq('room_id', roomId)
+        .eq('user_id', userId);
+
+      // Check if room is empty
+      const { data: remainingUsers } = await supabase
+        .from('room_users')
+        .select('*')
+        .eq('room_id', roomId);
+
+      if (!remainingUsers?.length) {
+        // Delete empty room
+        await supabase
+          .from('rooms')
+          .delete()
+          .eq('id', roomId);
+      } else if (currentDrawingUser === userId) {
+        // If leaving user was drawing, assign new drawing user
+        await supabase
+          .from('rooms')
+          .update({ current_drawing_user: remainingUsers[0].user_id })
+          .eq('id', roomId);
       }
-      
-      setUsers(updatedUsers);
     }
+
     setRoomId(null);
     setSearchParams({});
     setIsPlaying(false);
+    setUsers([]);
     console.log("Left room");
     toast.success("Left room successfully");
   };
