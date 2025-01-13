@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useUser } from "@/contexts/UserContext";
 import { getRandomWord } from "@/utils/wordUtils";
-import { supabase } from "@/lib/supabase";
+import { supabase, Room, RoomUser } from "@/lib/supabase";
 
 export const useRoom = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -27,11 +27,11 @@ export const useRoom = () => {
         .channel(`room:${roomId}`)
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
-          async (payload) => {
+          async (payload: { new: Room }) => {
             console.log('Room updated:', payload);
             if (payload.new) {
               setCurrentWord(payload.new.current_word || '');
-              setCurrentDrawingUser(payload.new.current_drawing_user);
+              setCurrentDrawingUser(payload.new.current_drawing_user || '');
             }
           }
         )
@@ -46,7 +46,7 @@ export const useRoom = () => {
             console.log('Users updated, fetching latest');
             const { data: roomUsers } = await supabase
               .from('room_users')
-              .select('*')
+              .select<'*', RoomUser>('*')
               .eq('room_id', roomId);
             
             if (roomUsers) {
@@ -61,6 +61,32 @@ export const useRoom = () => {
         .subscribe();
 
       // Initial room data fetch
+      const fetchRoomData = async () => {
+        const { data: room } = await supabase
+          .from('rooms')
+          .select<'*', Room>('*')
+          .eq('id', roomId)
+          .single();
+
+        if (room) {
+          setCurrentWord(room.current_word || '');
+          setCurrentDrawingUser(room.current_drawing_user || '');
+        }
+
+        const { data: roomUsers } = await supabase
+          .from('room_users')
+          .select<'*', RoomUser>('*')
+          .eq('room_id', roomId);
+
+        if (roomUsers) {
+          setUsers(roomUsers.map(user => ({
+            id: user.user_id,
+            name: user.username,
+            points: user.points
+          })));
+        }
+      };
+
       fetchRoomData();
 
       return () => {
@@ -69,34 +95,6 @@ export const useRoom = () => {
       };
     }
   }, [roomId]);
-
-  const fetchRoomData = async () => {
-    if (!roomId) return;
-
-    const { data: room } = await supabase
-      .from('rooms')
-      .select('*')
-      .eq('id', roomId)
-      .single();
-
-    if (room) {
-      setCurrentWord(room.current_word || '');
-      setCurrentDrawingUser(room.current_drawing_user);
-    }
-
-    const { data: roomUsers } = await supabase
-      .from('room_users')
-      .select('*')
-      .eq('room_id', roomId);
-
-    if (roomUsers) {
-      setUsers(roomUsers.map(user => ({
-        id: user.user_id,
-        name: user.username,
-        points: user.points
-      })));
-    }
-  };
 
   const fetchWordOptions = async () => {
     const words = await Promise.all([

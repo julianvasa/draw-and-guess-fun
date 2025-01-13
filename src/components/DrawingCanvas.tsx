@@ -6,7 +6,7 @@ import { ColorPicker } from "./canvas/ColorPicker";
 import { CanvasTools } from "./canvas/CanvasTools";
 import { HintShapes } from "./shapes/HintShapes";
 import { ShapeControls } from "./shapes/ShapeControls";
-import { supabase } from "@/lib/supabase";
+import { supabase, Room } from "@/lib/supabase";
 
 interface DrawingCanvasProps {
   onFinishDrawing: () => void;
@@ -45,10 +45,10 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
     
     const roomId = new URLSearchParams(window.location.search).get("room");
     if (roomId) {
-      // Load initial canvas data from Supabase
+      // Load initial canvas data from Supabase with proper typing
       supabase
         .from('rooms')
-        .select('canvas_data')
+        .select<'*', Room>('*')
         .eq('id', roomId)
         .single()
         .then(({ data }) => {
@@ -60,12 +60,12 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
           }
         });
 
-      // Subscribe to canvas changes
+      // Subscribe to canvas changes with proper typing
       const canvasSubscription = supabase
         .channel(`canvas:${roomId}`)
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
-          (payload) => {
+          (payload: { new: Room }) => {
             if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {
               canvas.loadFromJSON(payload.new.canvas_data, () => {
                 canvas.renderAll();
