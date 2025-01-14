@@ -61,8 +61,8 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
         });
 
       // Subscribe to canvas changes with proper typing
-      const canvasSubscription = supabase
-        .channel(`canvas:${roomId}`)
+      const channel = supabase.channel(`canvas:${roomId}`);
+      const canvasSubscription = channel
         .on('presence', { event: 'sync' }, () => {
           console.log('Presence sync event received');
         })

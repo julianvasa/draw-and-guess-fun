@@ -23,8 +23,8 @@ export const useRoom = () => {
   useEffect(() => {
     if (roomId) {
       // Subscribe to room changes
-      const roomSubscription = supabase
-        .channel(`room:${roomId}`)
+      const roomChannel = supabase.channel(`room:${roomId}`);
+      const roomSubscription = roomChannel
         .on('presence', { event: 'sync' }, () => {
           console.log('Presence sync event received');
         })
@@ -38,8 +38,8 @@ export const useRoom = () => {
         .subscribe();
 
       // Subscribe to room users changes
-      const usersSubscription = supabase
-        .channel(`room_users:${roomId}`)
+      const usersChannel = supabase.channel(`room_users:${roomId}`);
+      const usersSubscription = usersChannel
         .on('presence', { event: 'sync' }, () => {
           console.log('Presence sync event received');
         })
