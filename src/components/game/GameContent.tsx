@@ -40,7 +40,7 @@ export const GameContent = () => {
       />
       <div className="p-4 pt-20">
         <div className="max-w-[1800px] mx-auto">
-          {!roomId && <Logo />}
+          <Logo />
           {!roomId ? (
             <RoomManager onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} />
           ) : isPlaying ? (

@@ -1,68 +1,35 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface ColorPickerProps {
-  color: string;
-  onChange: (color: string) => void;
+  currentColor: string;
+  onColorChange: (color: string) => void;
 }
 
-export const ColorPicker = ({ color, onChange }: ColorPickerProps) => {
+const COLORS = {
+  black: "#000000",
+  red: "#FF0000",
+  orange: "#FF7F00",
+  yellow: "#FFFF00",
+  green: "#00FF00",
+  blue: "#0000FF",
+  indigo: "#4B0082",
+  violet: "#8F00FF"
+};
+
+export const ColorPicker = ({ currentColor, onColorChange }: ColorPickerProps) => {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-[65px] h-[35px] p-1"
-        >
-          <div
-            className="w-full h-full rounded"
-            style={{ backgroundColor: color }}
-          />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[240px]">
-        <div className="flex flex-col gap-4">
-          <div className="flex gap-2">
-            <Input
-              type="color"
-              value={color}
-              onChange={(e) => onChange(e.target.value)}
-            />
-            <Input
-              value={color}
-              onChange={(e) => onChange(e.target.value)}
-              className="flex-1"
-            />
-          </div>
-          <div className="grid grid-cols-5 gap-2">
-            {[
-              "#000000",
-              "#FF0000",
-              "#00FF00",
-              "#0000FF",
-              "#FFFF00",
-              "#FF00FF",
-              "#00FFFF",
-              "#808080",
-              "#800000",
-              "#808000",
-            ].map((presetColor) => (
-              <Button
-                key={presetColor}
-                variant="outline"
-                className="w-full p-1 h-8"
-                onClick={() => onChange(presetColor)}
-              >
-                <div
-                  className="w-full h-full rounded"
-                  style={{ backgroundColor: presetColor }}
-                />
-              </Button>
-            ))}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+    <div className="flex gap-2 mr-4">
+      {Object.entries(COLORS).map(([name, color]) => (
+        <button
+          key={name}
+          className={`w-8 h-8 rounded-full border-2 ${
+            currentColor === color ? 'border-primary' : 'border-gray-200'
+          } transition-all hover:scale-110`}
+          style={{ backgroundColor: color }}
+          onClick={() => onColorChange(color)}
+          title={name.charAt(0).toUpperCase() + name.slice(1)}
+        />
+      ))}
+    </div>
   );
 };
