@@ -7,10 +7,7 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-// Ensure URL is properly formatted
-const formattedUrl = supabaseUrl.startsWith('http') ? supabaseUrl : `https://${supabaseUrl}`;
-
-export const supabase = createClient(formattedUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Define database types
 export type Room = {
