@@ -62,25 +62,19 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
       const channel = supabase.channel(`canvas:${roomId}`);
       
       channel
-        .subscribe(async (status) => {
-          if (status === 'SUBSCRIBED') {
-            await channel.send({
-              type: 'broadcast',
-              event: 'canvas_update',
-              payload: { message: 'Canvas subscription active' }
+        .on('presence', { event: 'sync' }, () => {
+          console.log('Presence sync for canvas');
+        })
+        .on('broadcast', { event: 'canvas_update' }, (payload: { new: Room }) => {
+          if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {
+            canvas.loadFromJSON(payload.new.canvas_data, () => {
+              canvas.renderAll();
+              console.log("Canvas synced from Supabase");
             });
+            lastSyncRef.current = payload.new.canvas_data;
           }
-        });
-
-      channel.on('broadcast', { event: 'canvas_update' }, (payload: { new: Room }) => {
-        if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {
-          canvas.loadFromJSON(payload.new.canvas_data, () => {
-            canvas.renderAll();
-            console.log("Canvas synced from Supabase");
-          });
-          lastSyncRef.current = payload.new.canvas_data;
-        }
-      });
+        })
+        .subscribe();
 
       return () => {
         channel.unsubscribe();
