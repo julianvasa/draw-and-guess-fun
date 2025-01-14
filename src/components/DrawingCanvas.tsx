@@ -45,7 +45,6 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
     
     const roomId = new URLSearchParams(window.location.search).get("room");
     if (roomId) {
-      // Load initial canvas data from Supabase with proper typing
       supabase
         .from('rooms')
         .select<'*', Room>('*')
@@ -60,25 +59,31 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
           }
         });
 
-      // Subscribe to canvas changes with proper typing
       const channel = supabase.channel(`canvas:${roomId}`);
-      const canvasSubscription = channel
-        .on('presence', { event: 'sync' }, () => {
-          console.log('Presence sync event received');
-        })
-        .on('broadcast', { event: 'canvas_update' }, (payload: { new: Room }) => {
-          if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {
-            canvas.loadFromJSON(payload.new.canvas_data, () => {
-              canvas.renderAll();
-              console.log("Canvas synced from Supabase");
+      
+      channel
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await channel.send({
+              type: 'broadcast',
+              event: 'canvas_update',
+              payload: { message: 'Canvas subscription active' }
             });
-            lastSyncRef.current = payload.new.canvas_data;
           }
-        })
-        .subscribe();
+        });
+
+      channel.on('broadcast', { event: 'canvas_update' }, (payload: { new: Room }) => {
+        if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {
+          canvas.loadFromJSON(payload.new.canvas_data, () => {
+            canvas.renderAll();
+            console.log("Canvas synced from Supabase");
+          });
+          lastSyncRef.current = payload.new.canvas_data;
+        }
+      });
 
       return () => {
-        canvasSubscription.unsubscribe();
+        channel.unsubscribe();
       };
     }
 

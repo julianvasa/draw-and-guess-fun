@@ -24,41 +24,55 @@ export const useRoom = () => {
     if (roomId) {
       // Subscribe to room changes
       const roomChannel = supabase.channel(`room:${roomId}`);
-      const roomSubscription = roomChannel
-        .on('presence', { event: 'sync' }, () => {
-          console.log('Presence sync event received');
-        })
-        .on('broadcast', { event: 'room_update' }, (payload: { new: Room }) => {
-          console.log('Room updated:', payload);
-          if (payload.new) {
-            setCurrentWord(payload.new.current_word || '');
-            setCurrentDrawingUser(payload.new.current_drawing_user || '');
+      
+      roomChannel
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await roomChannel.send({
+              type: 'broadcast',
+              event: 'room_update',
+              payload: { message: 'Room subscription active' }
+            });
           }
-        })
-        .subscribe();
+        });
+
+      roomChannel.on('broadcast', { event: 'room_update' }, (payload: { new: Room }) => {
+        console.log('Room updated:', payload);
+        if (payload.new) {
+          setCurrentWord(payload.new.current_word || '');
+          setCurrentDrawingUser(payload.new.current_drawing_user || '');
+        }
+      });
 
       // Subscribe to room users changes
       const usersChannel = supabase.channel(`room_users:${roomId}`);
-      const usersSubscription = usersChannel
-        .on('presence', { event: 'sync' }, () => {
-          console.log('Presence sync event received');
-        })
-        .on('broadcast', { event: 'users_update' }, async () => {
-          console.log('Users updated, fetching latest');
-          const { data: roomUsers } = await supabase
-            .from('room_users')
-            .select<'*', RoomUser>('*')
-            .eq('room_id', roomId);
-          
-          if (roomUsers) {
-            setUsers(roomUsers.map(user => ({
-              id: user.user_id,
-              name: user.username,
-              points: user.points
-            })));
+      
+      usersChannel
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await usersChannel.send({
+              type: 'broadcast',
+              event: 'users_update',
+              payload: { message: 'Users subscription active' }
+            });
           }
-        })
-        .subscribe();
+        });
+
+      usersChannel.on('broadcast', { event: 'users_update' }, async () => {
+        console.log('Users updated, fetching latest');
+        const { data: roomUsers } = await supabase
+          .from('room_users')
+          .select<'*', RoomUser>('*')
+          .eq('room_id', roomId);
+        
+        if (roomUsers) {
+          setUsers(roomUsers.map(user => ({
+            id: user.user_id,
+            name: user.username,
+            points: user.points
+          })));
+        }
+      });
 
       // Initial room data fetch
       const fetchRoomData = async () => {
@@ -90,8 +104,8 @@ export const useRoom = () => {
       fetchRoomData();
 
       return () => {
-        roomSubscription.unsubscribe();
-        usersSubscription.unsubscribe();
+        roomChannel.unsubscribe();
+        usersChannel.unsubscribe();
       };
     }
   }, [roomId]);
