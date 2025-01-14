@@ -25,39 +25,33 @@ export const useRoom = () => {
       // Subscribe to room changes
       const roomSubscription = supabase
         .channel(`room:${roomId}`)
-        .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
-          async (payload: { new: Room }) => {
-            console.log('Room updated:', payload);
-            if (payload.new) {
-              setCurrentWord(payload.new.current_word || '');
-              setCurrentDrawingUser(payload.new.current_drawing_user || '');
-            }
+        .on('broadcast', { event: 'room_update' }, (payload: { new: Room }) => {
+          console.log('Room updated:', payload);
+          if (payload.new) {
+            setCurrentWord(payload.new.current_word || '');
+            setCurrentDrawingUser(payload.new.current_drawing_user || '');
           }
-        )
+        })
         .subscribe();
 
       // Subscribe to room users changes
       const usersSubscription = supabase
         .channel(`room_users:${roomId}`)
-        .on('postgres_changes',
-          { event: '*', schema: 'public', table: 'room_users', filter: `room_id=eq.${roomId}` },
-          async () => {
-            console.log('Users updated, fetching latest');
-            const { data: roomUsers } = await supabase
-              .from('room_users')
-              .select<'*', RoomUser>('*')
-              .eq('room_id', roomId);
-            
-            if (roomUsers) {
-              setUsers(roomUsers.map(user => ({
-                id: user.user_id,
-                name: user.username,
-                points: user.points
-              })));
-            }
+        .on('broadcast', { event: 'users_update' }, async () => {
+          console.log('Users updated, fetching latest');
+          const { data: roomUsers } = await supabase
+            .from('room_users')
+            .select<'*', RoomUser>('*')
+            .eq('room_id', roomId);
+          
+          if (roomUsers) {
+            setUsers(roomUsers.map(user => ({
+              id: user.user_id,
+              name: user.username,
+              points: user.points
+            })));
           }
-        )
+        })
         .subscribe();
 
       // Initial room data fetch

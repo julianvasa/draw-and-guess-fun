@@ -63,18 +63,15 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
       // Subscribe to canvas changes with proper typing
       const canvasSubscription = supabase
         .channel(`canvas:${roomId}`)
-        .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
-          (payload: { new: Room }) => {
-            if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {
-              canvas.loadFromJSON(payload.new.canvas_data, () => {
-                canvas.renderAll();
-                console.log("Canvas synced from Supabase");
-              });
-              lastSyncRef.current = payload.new.canvas_data;
-            }
+        .on('broadcast', { event: 'canvas_update' }, (payload: { new: Room }) => {
+          if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {
+            canvas.loadFromJSON(payload.new.canvas_data, () => {
+              canvas.renderAll();
+              console.log("Canvas synced from Supabase");
+            });
+            lastSyncRef.current = payload.new.canvas_data;
           }
-        )
+        })
         .subscribe();
 
       return () => {
