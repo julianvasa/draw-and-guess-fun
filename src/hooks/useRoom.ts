@@ -25,6 +25,9 @@ export const useRoom = () => {
       // Subscribe to room changes
       const roomSubscription = supabase
         .channel(`room:${roomId}`)
+        .on('presence', { event: 'sync' }, () => {
+          console.log('Presence sync event received');
+        })
         .on('broadcast', { event: 'room_update' }, (payload: { new: Room }) => {
           console.log('Room updated:', payload);
           if (payload.new) {
@@ -37,6 +40,9 @@ export const useRoom = () => {
       // Subscribe to room users changes
       const usersSubscription = supabase
         .channel(`room_users:${roomId}`)
+        .on('presence', { event: 'sync' }, () => {
+          console.log('Presence sync event received');
+        })
         .on('broadcast', { event: 'users_update' }, async () => {
           console.log('Users updated, fetching latest');
           const { data: roomUsers } = await supabase

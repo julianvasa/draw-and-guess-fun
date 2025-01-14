@@ -63,6 +63,9 @@ export const DrawingCanvas = ({ onFinishDrawing, currentWord }: DrawingCanvasPro
       // Subscribe to canvas changes with proper typing
       const canvasSubscription = supabase
         .channel(`canvas:${roomId}`)
+        .on('presence', { event: 'sync' }, () => {
+          console.log('Presence sync event received');
+        })
         .on('broadcast', { event: 'canvas_update' }, (payload: { new: Room }) => {
           if (payload.new && payload.new.canvas_data !== lastSyncRef.current) {
             canvas.loadFromJSON(payload.new.canvas_data, () => {
